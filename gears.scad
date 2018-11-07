@@ -1,836 +1,839 @@
-$fn = 96;
+//$ fn = 96;
 
-/* Bibliothek für Evolventen-Zahnräder, Schnecken und Zahnstangen
+// ACK NOTE:, I didn't touch the word "rad" since it could refer to radians or wheel
+/* Library for involute gears, screws and racks
+ 
+ Contains the modules
+ - rack (module, length, height, width, pressure_angle = 20, angle = 0)
+ - track_gear (module, tooth_number, width, bore, pressure_angle = 20, angle = 0, optimized = true)
+ - arrow_gear (modul, tooth_number, width, bore, pressure_angle = 20, angle = 0, optimized = true)
+ - rack_and_rad (module, length_bar, tooth_tooth_rad, height_bar, bore_rad, width, pressure_angle = 20, angle = 0, together_built = true, optimized = true)
+ - ring_gear (module, tooth_number, width, border_width, pressure_angle = 20, angle = 0)
+ - arrow_ring_gear (modul, tooth_number, width, borderwidth, pressure_angle = 20, angle = 0)
+ - planetary_gear (module, tooth_number_sun, tooth_planet_planet, number_planets, width, border_width, bore, pressure_angle = 20, angle = 0, together_built = true, optimized = true)
+ - bevel_gear (modul, tooth_number, part cone angle, tooth width, bore, pressure_angle = 20, angle = 0)
+ - bevel_arrow_gear (modul, tooth_number, part cone angle, tooth width, bore, pressure_angle = 20, angle = 0)
+ - bevel_gear_pair (modul, tooth_tooth_rad, tooth_type_pinion, axis_angle = 90, tooth_width, bore, pressure_angle = 20, angle = 0, together_built = true)
+ - bevel_arrow_gear_pair (modul, tooth_tooth_rad, sprocket_pinion, axis_angle = 90, tooth_width, bore, pressure_angle = 20, angle = 0, together_built = true)
+ - worm (module, number of steps, length, bore, pressure_angle = 20, angle = 10, together_built = true)
+ - worm_gear (modul, tooth_number, number of steps, width, length, bore_screw, bore_rad, pressure_angle = 20, angle = 0, optimized = true, together_built = true)
+ 
+ Examples of each module are commented out at the end of this file
+ 
+ Author: Dr Jörg Janssen
+ As of: 1 June 2018
+ Version: 2.2
+ License: Creative Commons Attribution, Non Commercial, Share Alike
+ 
+ Permitted modules DIN 780:
+ 0.05 0.06 0.08 0.10 0.12 0.16
+ 0.20 0.25 0.3  0.4  0.5  0.6
+ 0.7  0.8  0.9  1    1.25 1.5
+ 2    2.5  3    4    5    6
+ 8    10   12   16   20   25
+ 32   40   50   60
+ 
+ */
 
-Enthält die Module
-- rack(modul, length, hoehe, width, pressure_angle=20, schraegungswinkel=0)
-- spur_gear(modul, tooth_number, width, bohrung, pressure_angle=20, schraegungswinkel=0, optimized=true)
-- arrow_gear(modul, tooth_number, width, bohrung, pressure_angle=20, schraegungswinkel=0, optimized=true)
-- rack_und_rad (modul, laenge_stange, zahnzahl_rad, hoehe_stange, bohrung_rad, width, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true, optimized=true)
-- ring_gear(modul, tooth_number, width, randbreite, pressure_angle=20, schraegungswinkel=0)
-- arrow_ring_gear(modul, tooth_number, width, randbreite, pressure_angle=20, schraegungswinkel=0)
-- planetary_gear(modul, zahnzahl_sonne, zahnzahl_planet, anzahl_planeten, width, randbreite, bohrung, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true, optimized=true)
-- bevel_gear(modul, tooth_number,  teilkegelwinkel, zahnbreite, bohrung, pressure_angle=20, schraegungswinkel=0)
-- bevel_arrow_gear(modul, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle=20, schraegungswinkel=0)
-- bevel_gear_pair(modul, zahnzahl_rad, zahnzahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, pressure_angle = 20, schraegungswinkel=0, zusammen_gebaut=true)
-- bevel_arrow_gear_pair(modul, zahnzahl_rad, zahnzsahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, pressure_angle = 20, schraegungswinkel=0, zusammen_gebaut=true)
-- worm(modul, gangzahl, length, bohrung, pressure_angle=20, steigungswinkel=10, zusammen_gebaut=true)
-- worm_gear(modul, tooth_number, gangzahl, width, length, bohrung_schnecke, bohrung_rad, pressure_angle=20, steigungswinkel=0, optimized=true, zusammen_gebaut=true)
 
-Beispiele für jedes Modul befinden sich auskommentiert am Ende dieser Datei
-
-Autor:      Dr Jörg Janssen
-Stand:      1. Juni 2018
-Version:    2.2
-Lizenz:     Creative Commons - Attribution, Non Commercial, Share Alike
-
-Erlaubte Module nach DIN 780:
-0.05 0.06 0.08 0.10 0.12 0.16
-0.20 0.25 0.3  0.4  0.5  0.6
-0.7  0.8  0.9  1    1.25 1.5
-2    2.5  3    4    5    6
-8    10   12   16   20   25
-32   40   50   60
-
-*/
-
-
-// Allgemeine Variablen
+// general variables
 pi = 3.14159;
 rad = 57.29578;
-spiel = 0.05;   // Spiel zwischen Zähnen
+play = 0.05; // play between teeth
 
-/*  Wandelt Radian in Grad um */
+/* Convert Radian to degrees */
 function grad(pressure_angle) = pressure_angle*rad;
 
-/*  Wandelt Grad in Radian um */
+/* Converts degrees to Radian */
 function radian(pressure_angle) = pressure_angle/rad;
 
-/*  Wandelt 2D-Polarkoordinaten in kartesische um
-    Format: radius, phi; phi = Winkel zur x-Achse auf xy-Ebene */
-function pol_zu_kart(polvect) = [
-    polvect[0]*cos(polvect[1]),  
-    polvect[0]*sin(polvect[1])
-];
+/* Converts 2D polar coordinates to Cartesian
+ Format: radius, phi; phi = angle to x-axis on xy plane */
+function pole_to_cart(polvect) = [
+                                 polvect[0]*cos(polvect[1]),
+                                 polvect[0]*sin(polvect[1])
+                                 ];
 
-/*  Kreisevolventen-Funktion:
-    Gibt die Polarkoordinaten einer Kreisevolvente aus
-    r = Radius des Grundkreises
-    rho = Abrollwinkel in Grad */
+/* Circle involute function:
+ Returns the polar coordinates of a circle involute
+ r = radius of the base circle
+ rho = roll angle in degrees */
 function ev(r,rho) = [
-    r/cos(rho),
-    grad(tan(rho)-radian(rho))
-];
+                      r/cos(rho),
+                      grad(tan(rho)-radian(rho))
+                      ];
 
-/*  Kugelevolventen-Funktion
-    Gibt den Azimutwinkel einer Kugelevolvente aus
-    theta0 = Polarwinkel des Kegels, an dessen Schnittkante zur Großkugel die Evolvente abrollt
-    theta = Polarwinkel, für den der Azimutwinkel der Evolvente berechnet werden soll */
-function kugelev(theta0,theta) = 1/sin(theta0)*acos(cos(theta)/cos(theta0))-acos(tan(theta0)/tan(theta));
+/* Ball Gradient function
+ Returns the azimuth angle of a bulb
+ theta0 = polar angle of the cone, at the cutting edge of the large ball unrolls the involute
+ theta = polar angle for which the azimuth angle of the involute is to be calculated */
+function ball_ev(theta0,theta) = 1/sin(theta0)*acos(cos(theta)/cos(theta0))-acos(tan(theta0)/tan(theta));
 
-/*  Wandelt Kugelkoordinaten in kartesische um
-    Format: radius, theta, phi; theta = Winkel zu z-Achse, phi = Winkel zur x-Achse auf xy-Ebene */
-function kugel_zu_kart(vect) = [
-    vect[0]*sin(vect[1])*cos(vect[2]),  
-    vect[0]*sin(vect[1])*sin(vect[2]),
-    vect[0]*cos(vect[1])
-];
+/* Converts spherical coordinates to Cartesian
+ Format: radius, theta, phi; theta = angle to z-axis, phi = angle to x-axis on xy-plane */
+function ball_to_cart(vect) = [
+                                vect[0]*sin(vect[1])*cos(vect[2]),
+                                vect[0]*sin(vect[1])*sin(vect[2]),
+                                vect[0]*cos(vect[1])
+                                ];
 
-/*  prüft, ob eine Zahl gerade ist
-    = 1, wenn ja
-    = 0, wenn die Zahl nicht gerade ist */
-function istgerade(zahl) =
-    (zahl == floor(zahl/2)*2) ? 1 : 0;
+/* checks if a number is_even
+ = 1, if yes
+ = 0 if the number is not straight */
+function isstraight(number) =
+(number == floor(number/2)*2) ? 1 : 0;
 
-/*  größter gemeinsamer Teiler
-    nach Euklidischem Algorithmus.
-    Sortierung: a muss größer als b sein */
-function ggt(a,b) = 
-    a%b == 0 ? b : ggt(b,a%b);
+/* greatest common divisor
+ according to Euclidean algorithm.
+ Sorting: a must be greater than b */
+function ggt(a,b) =
+a%b == 0 ? b : ggt(b,a%b);
 
-/*  Polarfunktion mit polarwinkel und zwei variablen */
-function spirale(a, r0, phi) =
-    a*phi + r0; 
+/* Polar function with polar angle and two variables */
+function spiral(a, r0, phi) =
+a*phi + r0;
 
-/*  Kopiert und dreht einen Körper */
-module kopiere(vect, zahl, abstand, winkel){
-    for(i = [0:zahl-1]){
-        translate(v=vect*abstand*i)
-            rotate(a=i*winkel, v = [0,0,1])
-                children(0);
+/* Copy and spin a body */
+module copy(vect, number, distance, corner){
+    for(i = [0:number-1]){
+        translate(v=vect*distance*i)
+        rotate(a=i*corner, v = [0,0,1])
+        children(0);
     }
 }
 
-/*  rack
-    modul = Höhe des Zahnkopfes über der Wälzgeraden
-    length = Länge der rack
-    hoehe = Höhe der rack bis zur Wälzgeraden
-    width = Breite eines Zahns
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Zahnstangen-Querachse; 0° = Geradverzahnung */
-module rack(modul, length, hoehe, width, pressure_angle = 20, schraegungswinkel = 0) {
-
-    // Dimensions-Berechnungen
-    modul=modul*(1-spiel);
-    c = modul / 6;                                              // Kopfspiel
-    mx = modul/cos(schraegungswinkel);                          // Durch Schrägungswinkel verzerrtes modul in x-Richtung
-    a = 2*mx*tan(pressure_angle)+c*tan(pressure_angle);       // Flankenbreite
-    b = pi*mx/2-2*mx*tan(pressure_angle);                      // Kopfbreite
-    x = width*tan(schraegungswinkel);                          // Verschiebung der Oberseite in x-Richtung durch Schrägungswinkel
-    nz = ceil((length+abs(2*x))/(pi*mx));                       // Anzahl der Zähne
+/* Rack
+ modul = height of the tooth tip above the rolling line
+ length = length of the rack
+ height = height of the rack to the pitch line
+ width = width of a tooth
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the rack transverse axis; 0 ° = spur toothing */
+module rack(modul, length, height, width, pressure_angle = 20, helix_angle = 0) {
+    
+    // Dimension calculations
+    modul=modul*(1-play);
+    c = modul / 6;                                              // head play
+    mx = modul/cos(helix_angle);                          // Diagonal skewed module in x direction
+    a = 2*mx*tan(pressure_angle)+c*tan(pressure_angle);       // flank width
+    b = pi*mx/2-2*mx*tan(pressure_angle);                      // head width
+    x = width*tan(helix_angle);                          // shift the top in the x direction by helix angle
+    nz = ceil((length+abs(2*x))/(pi*mx));                       // Number of teeth
     
     translate([-pi*mx*(nz-1)/2-a-b/2,-modul,0]){
-        intersection(){                                         // Erzeugt ein Prisma, das in eine Quadergeometrie eingepasst wird
-            kopiere([1,0,0], nz, pi*mx, 0){
+        intersection(){                                         // Creates a prism that fits into a box geometry
+            copy([1,0,0], nz, pi*mx, 0){
                 polyhedron(
-                    points=[[0,-c,0], [a,2*modul,0], [a+b,2*modul,0], [2*a+b,-c,0], [pi*mx,-c,0], [pi*mx,modul-hoehe,0], [0,modul-hoehe,0], // Unterseite
-                        [0+x,-c,width], [a+x,2*modul,width], [a+b+x,2*modul,width], [2*a+b+x,-c,width], [pi*mx+x,-c,width], [pi*mx+x,modul-hoehe,width], [0+x,modul-hoehe,width]],   // Oberseite
-                    faces=[[6,5,4,3,2,1,0],                     // Unterseite
-                        [1,8,7,0],
-                        [9,8,1,2],
-                        [10,9,2,3],
-                        [11,10,3,4],
-                        [12,11,4,5],
-                        [13,12,5,6],
-                        [7,13,6,0],
-                        [7,8,9,10,11,12,13],                    // Oberseite
-                    ]
-                );
+                           points=[[0,-c,0], [a,2*modul,0], [a+b,2*modul,0], [2*a+b,-c,0], [pi*mx,-c,0], [pi*mx,modul-height,0], [0,modul-height,0], // bottom
+                                   [0+x,-c,width], [a+x,2*modul,width], [a+b+x,2*modul,width], [2*a+b+x,-c,width], [pi*mx+x,-c,width], [pi*mx+x,modul-height,width], [0+x,modul-height,width]],   // top
+                           faces=[[6,5,4,3,2,1,0],                     // bottom
+                                  [1,8,7,0],
+                                  [9,8,1,2],
+                                  [10,9,2,3],
+                                  [11,10,3,4],
+                                  [12,11,4,5],
+                                  [13,12,5,6],
+                                  [7,13,6,0],
+                                  [7,8,9,10,11,12,13],                    // top
+                                  ]
+                           );
             };
-            translate([abs(x),-hoehe+modul-0.5,-0.5]){
-                cube([length,hoehe+modul+1,width+1]);          // Quader, der das Volumen der rack umfasst
-            }   
+            translate([abs(x),-height+modul-0.5,-0.5]){
+                cube([length,height+modul+1,width+1]);          // cuboid, which includes the volume of the rack
+            }
         };
-    };  
+    };
 }
 
-/*  Stirnrad
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    tooth_number = Anzahl der Radzähne
-    width = Zahnbreite
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse; 0° = Geradverzahnung
-    optimized = Löcher zur Material-/Gewichtsersparnis bzw. Oberflächenvergößerung erzeugen, wenn Geometrie erlaubt */
-module spur_gear(modul, tooth_number, width, bohrung, pressure_angle = 20, schraegungswinkel = 0, optimized = true) {
-
-    // Dimensions-Berechnungen  
-    d = modul * tooth_number;                                           // Teilkreisdurchmesser
-    r = d / 2;                                                      // Teilkreisradius
-    alpha_stirn = atan(tan(pressure_angle)/cos(schraegungswinkel));// Schrägungswinkel im Stirnschnitt
-    db = d * cos(alpha_stirn);                                      // Grundkreisdurchmesser
-    rb = db / 2;                                                    // Grundkreisradius
-    da = (modul <1)? d + modul * 2.2 : d + modul * 2;               // Kopfkreisdurchmesser nach DIN 58400 bzw. DIN 867
-    ra = da / 2;                                                    // Kopfkreisradius
-    c =  (tooth_number <3)? 0 : modul/6;                                // Kopfspiel
-    df = d - 2 * (modul + c);                                       // Fußkreisdurchmesser
-    rf = df / 2;                                                    // Fußkreisradius
-    rho_ra = acos(rb/ra);                                           // maximaler Abrollwinkel;
-                                                                    // Evolvente beginnt auf Grundkreis und endet an Kopfkreis
-    rho_r = acos(rb/r);                                             // Abrollwinkel am Teilkreis;
-                                                                    // Evolvente beginnt auf Grundkreis und endet an Kopfkreis
-    phi_r = grad(tan(rho_r)-radian(rho_r));                         // Winkel zum Punkt der Evolvente auf Teilkreis
-    gamma = rad*width/(r*tan(90-schraegungswinkel));               // Torsionswinkel für Extrusion
-    schritt = rho_ra/16;                                            // Evolvente wird in 16 Stücke geteilt
-    tau = 360/tooth_number;                                             // Teilungswinkel
+/* Spur gear
+ modul = height of the tooth tip over the pitch circle
+ tooth_number = number of wheel teeth
+ width = tooth width
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation; 0 ° = spur toothing
+ optimized = holes for material / weight saving resp. Create surface enhancement if geometry allows */
+module spur_gear(modul, tooth_number, width, drilling, pressure_angle = 20, helix_angle = 0, optimized = true) {
     
-    r_loch = (2*rf - bohrung)/8;                                    // Radius der Löcher für Material-/Gewichtsersparnis
-    rm = bohrung/2+2*r_loch;                                        // Abstand der Achsen der Löcher von der Hauptachse
-    z_loch = floor(2*pi*rm/(3*r_loch));                             // Anzahl der Löcher für Material-/Gewichtsersparnis
+    // Dimensions-calculation
+    d = modul * tooth_number;                                           // pitch circle diameter
+    r = d / 2;                                                      // pitch circle radius
+    alpha_front = atan(tan(pressure_angle)/cos(helix_angle));// helix angle in frontal section
+    db = d * cos(alpha_front);                                      // base circle diameter
+    rb = db / 2;                                                    // base circle radius
+    da = (modul <1)? d + modul * 2.2 : d + modul * 2;               // tip diameter according to DIN 58400 resp. DIN 867
+    ra = da / 2;                                                    // tip circle radius
+    c =  (tooth_number <3)? 0 : modul/6;                                // head play
+    df = d - 2 * (modul + c);                                       // root diameter
+    rf = df / 2;                                                    // root radius
+    rho_ra = acos(rb/ra);                                           // maximum roll-off angle;
+    // involute starts on the base circle and ends at the tip circle
+    rho_r = acos(rb/r);                                             // rolling angle at pitch circle;
+    // involute starts on the base circle and ends at the tip circle
+    phi_r = grad(tan(rho_r)-radian(rho_r));                         // angle to point of involute on pitch circle
+    gamma = rad*width/(r*tan(90-helix_angle));               // torsion angle for extrusion
+    step = rho_ra/16;                                            // involute is divided into 16 pieces
+    tau = 360/tooth_number;                                             // pitch angle
     
-    optimized = (optimized && r >= width*1.5 && d > 2*bohrung);    // ist Optimierung sinnvoll?
-
-    // Zeichnung
+    r_hole = (2*rf - drilling)/8;                                    // Radius of holes for material / weight savings
+    rm = drilling/2+2*r_hole;                                        // distance of the axes of the holes from the main axis
+    z_hole = floor(2*pi*rm/(3*r_hole));                             // Number of holes for material / weight savings
+    
+    optimized = (optimized && r >= width*1.5 && d > 2*drilling);    // is optimization useful?
+    
+    // drawing
     union(){
-        rotate([0,0,-phi_r-90*(1-spiel)/tooth_number]){                     // Zahn auf x-Achse zentrieren;
-                                                                        // macht Ausrichtung mit anderen Rädern einfacher
-
+        rotate([0,0,-phi_r-90*(1-play)/tooth_number]){                     // center tooth on x-axis;
+            //  makes alignment with other wheels easier
+            
             linear_extrude(height = width, twist = gamma){
                 difference(){
                     union(){
-                        zahnbreite = (180*(1-spiel))/tooth_number+2*phi_r;
-                        circle(rf);                                     // Fußkreis 
+                        tooth_wide = (180*(1-play))/tooth_number+2*phi_r;
+                        circle(rf);                                     // footer
                         for (rot = [0:tau:360]){
-                            rotate (rot){                               // "Zahnzahl-mal" kopieren und drehen
-                                polygon(concat(                         // Zahn
-                                    [[0,0]],                            // Zahnsegment beginnt und endet im Ursprung
-                                    [for (rho = [0:schritt:rho_ra])     // von null Grad (Grundkreis)
-                                                                        // bis maximalen Evolventenwinkel (Kopfkreis)
-                                        pol_zu_kart(ev(rb,rho))],       // Erste Evolventen-Flanke
-
-                                    [pol_zu_kart(ev(rb,rho_ra))],       // Punkt der Evolvente auf Kopfkreis
-
-                                    [for (rho = [rho_ra:-schritt:0])    // von maximalen Evolventenwinkel (Kopfkreis)
-                                                                        // bis null Grad (Grundkreis)
-                                        pol_zu_kart([ev(rb,rho)[0], zahnbreite-ev(rb,rho)[1]])]
-                                                                        // Zweite Evolventen-Flanke
-                                                                        // (180*(1-spiel)) statt 180 Grad,
-                                                                        // um Spiel an den Flanken zu erlauben
-                                    )
-                                );
+                            rotate (rot){                               // copy and rotate "number of teeth"
+                                polygon(concat(                         // tooth
+                                               [[0,0]],                            // Tooth segment starts and ends in origin
+                                               [for (rho = [0:step:rho_ra])     // from zero degrees (base circle)
+                                                // to maximum involute angle (top circle)
+                                                pole_to_cart(ev(rb,rho))],       // First involute flank
+                                               
+                                               [pole_to_cart(ev(rb,rho_ra))],       // point of the involute on top circle
+                                               
+                                               [for (rho = [rho_ra:-step:0])    // of maximum involute angle (top circle)
+                                                // to zero degrees (base circle)
+                                                pole_to_cart([ev(rb,rho)[0], tooth_wide-ev(rb,rho)[1]])]
+                                               // Second involute flank
+                                               // (180 * (1-play)) instead of 180 degrees,
+                                               // to allow play on the flanks
+                                               )
+                                        );
                             }
                         }
-                    }           
-                    circle(r = rm+r_loch*1.49);                         // "Bohrung"
+                    }
+                    circle(r = rm+r_hole*1.49);                         // "drilling"
                 }
             }
         }
-        // mit Materialersparnis
+        // with material savings
         if (optimized) {
             linear_extrude(height = width){
                 difference(){
-                        circle(r = (bohrung+r_loch)/2);
-                        circle(r = bohrung/2);                          // Bohrung
-                    }
+                    circle(r = (drilling+r_hole)/2);
+                    circle(r = drilling/2);                          // drilling
                 }
-            linear_extrude(height = (width-r_loch/2 < width*2/3) ? width*2/3 : width-r_loch/2){
+            }
+            linear_extrude(height = (width-r_hole/2 < width*2/3) ? width*2/3 : width-r_hole/2){
                 difference(){
-                    circle(r=rm+r_loch*1.51);
+                    circle(r=rm+r_hole*1.51);
                     union(){
-                        circle(r=(bohrung+r_loch)/2);
-                        for (i = [0:1:z_loch]){
-                            translate(kugel_zu_kart([rm,90,i*360/z_loch]))
-                                circle(r = r_loch);
+                        circle(r=(drilling+r_hole)/2);
+                        for (i = [0:1:z_hole]){
+                            translate(ball_to_cart([rm,90,i*360/z_hole]))
+                            circle(r = r_hole);
                         }
                     }
                 }
             }
         }
-        // ohne Materialersparnis
+        // without material savings
         else {
             linear_extrude(height = width){
                 difference(){
-                    circle(r = rm+r_loch*1.51);
-                    circle(r = bohrung/2);
+                    circle(r = rm+r_hole*1.51);
+                    circle(r = drilling/2);
                 }
             }
         }
     }
 }
 
-/*  Pfeilrad; verwendet das Modul "spur_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    tooth_number = Anzahl der Radzähne
-    width = Zahnbreite
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung)
-    optimized = Löcher zur Material-/Gewichtsersparnis */
-module arrow_gear(modul, tooth_number, width, bohrung, pressure_angle = 20, schraegungswinkel=0, optimized=true){
-
-    width = width/2;
-    d = modul * tooth_number;                                           // Teilkreisdurchmesser
-    r = d / 2;                                                      // Teilkreisradius
-    c =  (tooth_number <3)? 0 : modul/6;                                // Kopfspiel
-
-    df = d - 2 * (modul + c);                                       // Fußkreisdurchmesser
-    rf = df / 2;                                                    // Fußkreisradius
-
-    r_loch = (2*rf - bohrung)/8;                                    // Radius der Löcher für Material-/Gewichtsersparnis
-    rm = bohrung/2+2*r_loch;                                        // Abstand der Achsen der Löcher von der Hauptachse
-    z_loch = floor(2*pi*rm/(3*r_loch));                             // Anzahl der Löcher für Material-/Gewichtsersparnis
+/* Arrow wheel; uses the module "spur_gear"
+ modul = height of the tooth tip over the pitch circle
+ tooth_number = number of wheel teeth
+ width = tooth width
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation, standard value = 0 ° (straight toothing)
+ optimized = holes for material / weight saving */
+module arrow_gear(modul, tooth_number, width, drilling, pressure_angle = 20, helix_angle=0, optimized=true){
     
-    optimized = (optimized && r >= width*3 && d > 2*bohrung);      // ist Optimierung sinnvoll?
-
+    width = width/2;
+    d = modul * tooth_number;                                           // pitch circle diameter
+    r = d / 2;                                                      // pitch circle radius
+    c =  (tooth_number <3)? 0 : modul/6;                                // head play
+    
+    df = d - 2 * (modul + c);                                       // root diameter
+    rf = df / 2;                                                    // root radius
+    
+    r_hole = (2*rf - drilling)/8;                                    // Radius of holes for material / weight savings
+    rm = drilling/2+2*r_hole;                                        // distance of the axes of the holes from the main axis
+    z_hole = floor(2*pi*rm/(3*r_hole));                             // Number of holes for material / weight savings
+    
+    optimized = (optimized && r >= width*3 && d > 2*drilling);      // is optimization useful?
+    
     translate([0,0,width]){
         union(){
-            spur_gear(modul, tooth_number, width, 2*(rm+r_loch*1.49), pressure_angle, schraegungswinkel, false);      // untere Hälfte
+            spur_gear(modul, tooth_number, width, 2*(rm+r_hole*1.49), pressure_angle, helix_angle, false);      // bottom half
             mirror([0,0,1]){
-                spur_gear(modul, tooth_number, width, 2*(rm+r_loch*1.49), pressure_angle, schraegungswinkel, false);  // obere Hälfte
+                spur_gear(modul, tooth_number, width, 2*(rm+r_hole*1.49), pressure_angle, helix_angle, false);  // top half
             }
         }
     }
-    // mit Materialersparnis
+    // with material savings
     if (optimized) {
         linear_extrude(height = width*2){
             difference(){
-                    circle(r = (bohrung+r_loch)/2);
-                    circle(r = bohrung/2);                          // Bohrung
-                }
+                circle(r = (drilling+r_hole)/2);
+                circle(r = drilling/2);                          // drilling
             }
-        linear_extrude(height = (2*width-r_loch/2 < 1.33*width) ? 1.33*width : 2*width-r_loch/2){ //width*4/3
+        }
+        linear_extrude(height = (2*width-r_hole/2 < 1.33*width) ? 1.33*width : 2*width-r_hole/2){ //width*4/3
             difference(){
-                circle(r=rm+r_loch*1.51);
+                circle(r=rm+r_hole*1.51);
                 union(){
-                    circle(r=(bohrung+r_loch)/2);
-                    for (i = [0:1:z_loch]){
-                        translate(kugel_zu_kart([rm,90,i*360/z_loch]))
-                            circle(r = r_loch);
+                    circle(r=(drilling+r_hole)/2);
+                    for (i = [0:1:z_hole]){
+                        translate(ball_to_cart([rm,90,i*360/z_hole]))
+                        circle(r = r_hole);
                     }
                 }
             }
         }
     }
-    // ohne Materialersparnis
+    // without material savings
     else {
         linear_extrude(height = width*2){
             difference(){
-                circle(r = rm+r_loch*1.51);
-                circle(r = bohrung/2);
+                circle(r = rm+r_hole*1.51);
+                circle(r = drilling/2);
             }
         }
     }
 }
 
-/*  rack und -Rad
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    laenge_stange = Laenge der rack
-    zahnzahl_rad = Anzahl der Radzähne
-    hoehe_stange = Höhe der rack bis zur Wälzgeraden
-    bohrung_rad = Durchmesser der Mittelbohrung des Stirnrads
-    width = Breite eines Zahns
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module zahnstange_und_rad (modul, laenge_stange, zahnzahl_rad, hoehe_stange, bohrung_rad, width, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true, optimized=true) {
-
-    abstand = zusammen_gebaut? modul*zahnzahl_rad/2 : modul*zahnzahl_rad;
-
-    rack(modul, laenge_stange, hoehe_stange, width, pressure_angle, -schraegungswinkel);
-    translate([0,abstand,0])
-        rotate(a=360/zahnzahl_rad)
-            spur_gear (modul, zahnzahl_rad, width, bohrung_rad, pressure_angle, schraegungswinkel, optimized);
+/* rack and wheel
+ modul = height of the tooth tip over the pitch circle
+ length_bar = length of the rack
+ number of teeth_rad = number of wheel teeth
+ height_bar = height of the rack to the pitch line
+ bore_rad = diameter of the central bore of the spur gear
+ width = width of a tooth
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation, standard value = 0 ° (straight toothing) */
+module rack_and_pinion (modul, rod_length, num_of_teeth, height_rod, borehole_rad, width, pressure_angle=20, helix_angle=0, assembled=true, optimized=true) {
+    
+    distance = assembled? modul*num_of_teeth/2 : modul*num_of_teeth;
+    
+    rack(modul, rod_length, height_rod, width, pressure_angle, -helix_angle);
+    translate([0,distance,0])
+    rotate(a=360/num_of_teeth)
+    spur_gear (modul, num_of_teeth, width, borehole_rad, pressure_angle, helix_angle, optimized);
 }
 
-/*  Hohlrad
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    tooth_number = Anzahl der Radzähne
-    width = Zahnbreite
-    randbreite = Breite des Randes ab Fußkreis
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module ring_gear(modul, tooth_number, width, randbreite, pressure_angle = 20, schraegungswinkel = 0) {
-
-    // Dimensions-Berechnungen  
-    ha = (tooth_number >= 20) ? 0.02 * atan((tooth_number/15)/pi) : 0.6;    // Verkürzungsfaktor Zahnkopfhöhe
-    d = modul * tooth_number;                                           // Teilkreisdurchmesser
-    r = d / 2;                                                      // Teilkreisradius
-    alpha_stirn = atan(tan(pressure_angle)/cos(schraegungswinkel));// Schrägungswinkel im Stirnschnitt
-    db = d * cos(alpha_stirn);                                      // Grundkreisdurchmesser
-    rb = db / 2;                                                    // Grundkreisradius
-    c = modul / 6;                                                  // Kopfspiel
-    da = (modul <1)? d + (modul+c) * 2.2 : d + (modul+c) * 2;       // Kopfkreisdurchmesser
-    ra = da / 2;                                                    // Kopfkreisradius
-    df = d - 2 * modul * ha;                                        // Fußkreisdurchmesser
-    rf = df / 2;                                                    // Fußkreisradius
-    rho_ra = acos(rb/ra);                                           // maximaler Evolventenwinkel;
-                                                                    // Evolvente beginnt auf Grundkreis und endet an Kopfkreis
-    rho_r = acos(rb/r);                                             // Evolventenwinkel am Teilkreis;
-                                                                    // Evolvente beginnt auf Grundkreis und endet an Kopfkreis
-    phi_r = grad(tan(rho_r)-radian(rho_r));                         // Winkel zum Punkt der Evolvente auf Teilkreis
-    gamma = rad*width/(r*tan(90-schraegungswinkel));               // Torsionswinkel für Extrusion
-    schritt = rho_ra/16;                                            // Evolvente wird in 16 Stücke geteilt
-    tau = 360/tooth_number;                                             // Teilungswinkel
-
-    // Zeichnung
-    rotate([0,0,-phi_r-90*(1+spiel)/tooth_number])                      // Zahn auf x-Achse zentrieren;
-                                                                    // macht Ausrichtung mit anderen Rädern einfacher
+/* Ring gear
+ modul = height of the tooth tip over the pitch circle
+ tooth_number = number of wheel teeth
+ width = tooth width
+ border width = width of the border from root circle
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation, standard value = 0 ° (straight toothing) */
+module ring_gear(modul, tooth_number, width, edge_width, pressure_angle = 20, helix_angle = 0) {
+    
+    // Dimension calculations
+    ha = (tooth_number >= 20) ? 0.02 * atan((tooth_number/15)/pi) : 0.6;    // shortening factor tooth head height
+    d = modul * tooth_number;                                           // pitch circle diameter
+    r = d / 2;                                                      // pitch circle radius
+    alpha_front = atan(tan(pressure_angle)/cos(helix_angle));// helix angle in frontal section
+    db = d * cos(alpha_front);                                      // base circle diameter
+    rb = db / 2;                                                    //  base circle radius
+    c = modul / 6;                                                  // head play
+    da = (modul <1)? d + (modul+c) * 2.2 : d + (modul+c) * 2;       // tip diameter
+    ra = da / 2;                                                    // tip circle radius
+    df = d - 2 * modul * ha;                                        // root diameter
+    rf = df / 2;                                                    // root radius
+    rho_ra = acos(rb/ra);                                           // maximum involute angle;
+    // involute starts on the base circle and ends at the tip circle
+    rho_r = acos(rb/r);                                             // involute angle at pitch circle;
+    // involute starts on the base circle and ends at the tip circle
+    phi_r = grad(tan(rho_r)-radian(rho_r));                         // angle to point of involute on pitch circle
+    gamma = rad*width/(r*tan(90-helix_angle));               // torsion angle for extrusion
+    step = rho_ra/16;                                            // involute is divided into 16 pieces
+    tau = 360/tooth_number;                                             // pitch angle
+    
+    // drawing
+    rotate([0,0,-phi_r-90*(1+play)/tooth_number])                      // center tooth on x-axis;
+    // makes alignment with other wheels easier
     linear_extrude(height = width, twist = gamma){
         difference(){
-            circle(r = ra + randbreite);                            // Außenkreis
+            circle(r = ra + edge_width);                            // outer circle
             union(){
-                zahnbreite = (180*(1+spiel))/tooth_number+2*phi_r;
-                circle(rf);                                         // Fußkreis 
+                tooth_wide = (180*(1+play))/tooth_number+2*phi_r;
+                circle(rf);                                         // footer
                 for (rot = [0:tau:360]){
-                    rotate (rot) {                                  // "Zahnzahl-mal" kopieren und drehen
+                    rotate (rot) {                                  // copy and rotate "number of teeth"
                         polygon( concat(
-                            [[0,0]],
-                            [for (rho = [0:schritt:rho_ra])         // von null Grad (Grundkreis)
-                                                                    // bis maximaler Evolventenwinkel (Kopfkreis)
-                                pol_zu_kart(ev(rb,rho))],
-                            [pol_zu_kart(ev(rb,rho_ra))],
-                            [for (rho = [rho_ra:-schritt:0])        // von maximaler Evolventenwinkel (Kopfkreis)
-                                                                    // bis null Grad (Grundkreis)
-                                pol_zu_kart([ev(rb,rho)[0], zahnbreite-ev(rb,rho)[1]])]
-                                                                    // (180*(1+spiel)) statt 180,
-                                                                    // um Spiel an den Flanken zu erlauben
-                            )
-                        );
+                                        [[0,0]],
+                                        [for (rho = [0:step:rho_ra])         // from zero degrees (base circle)
+                                         // to maximum involute angle (top circle)
+                                         pole_to_cart(ev(rb,rho))],
+                                        [pole_to_cart(ev(rb,rho_ra))],
+                                        [for (rho = [rho_ra:-step:0])        // from maximum involute angle (top circle)
+                                         // to zero degrees (base circle)
+                                         pole_to_cart([ev(rb,rho)[0], tooth_wide-ev(rb,rho)[1]])]
+                                        // (180 * (1 + play)) instead of 180,
+                                        // to allow play on the flanks
+                                        )
+                                );
                     }
                 }
             }
         }
     }
-
-    echo("Außendurchmesser Hohlrad = ", 2*(ra + randbreite));
+    
+    echo("outer diameter ring gear = ", 2*(ra + edge_width));
     
 }
 
-/*  Pfeil-Hohlrad; verwendet das Modul "ring_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkegel
-    tooth_number = Anzahl der Radzähne
-    width = Zahnbreite
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung) */
-module arrow_ring_gear(modul, tooth_number, width, randbreite, pressure_angle = 20, schraegungswinkel = 0) {
-
+/* Arrow ring gear; uses the module "ring_gear"
+ modul = height of the tooth tip over the cone
+ tooth_number = number of wheel teeth
+ width = tooth width
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation, standard value = 0 ° (straight toothing) */
+module arrow_ring_gear(modul, tooth_number, width, edge_width, pressure_angle = 20, helix_angle = 0) {
+    
     width = width / 2;
     translate([0,0,width])
-        union(){
-        ring_gear(modul, tooth_number, width, randbreite, pressure_angle, schraegungswinkel);       // untere Hälfte
+    union(){
+        ring_gear(modul, tooth_number, width, edge_width, pressure_angle, helix_angle);       // bottom half
         mirror([0,0,1])
-            ring_gear(modul, tooth_number, width, randbreite, pressure_angle, schraegungswinkel);   // obere Hälfte
+        ring_gear(modul, tooth_number, width, edge_width, pressure_angle, helix_angle);   // upper half
     }
 }
 
-/*  Planetengetriebe; verwendet die Module "arrow_gear" und "arrow_ring_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkegel
-    zahnzahl_sonne = Anzahl der Zähne des Sonnenrads
-    zahnzahl_planet = Anzahl der Zähne eines Planetenrads
-    anzahl_planeten = Anzahl der Planetenräder. Wenn null, rechnet die Funktion die Mindestanzahl aus.
-    width = Zahnbreite
-    randbreite = Breite des Randes ab Fußkreis
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel zur Rotationsachse, Standardwert = 0° (Geradverzahnung)
-    zusammen_gebaut = 
-    optimized = Löcher zur Material-/Gewichtsersparnis bzw. Oberflächenvergößerung erzeugen, wenn Geometrie erlaubt
-    zusammen_gebaut = Komponenten zusammengebaut für Konstruktion oder auseinander zum 3D-Druck */
-module planetary_gear(modul, zahnzahl_sonne, zahnzahl_planet, anzahl_planeten, width, randbreite, bohrung, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true, optimized=true){
-
-    // Dimensions-Berechnungen
-    d_sonne = modul*zahnzahl_sonne;                                     // Teilkreisdurchmesser Sonne
-    d_planet = modul*zahnzahl_planet;                                   // Teilkreisdurchmesser Planeten
-    achsabstand = modul*(zahnzahl_sonne +  zahnzahl_planet) / 2;        // Abstand von Sonnenrad-/Hohlradachse und Planetenachse
-    zahnzahl_hohlrad = zahnzahl_sonne + 2*zahnzahl_planet;              // Anzahl der Zähne des Hohlrades
-    d_hohlrad = modul*zahnzahl_hohlrad;                                 // Teilkreisdurchmesser Hohlrad
-
-    drehen = istgerade(zahnzahl_planet);                                // Muss das Sonnenrad gedreht werden?
-        
-    n_max = floor(180/asin(modul*(zahnzahl_planet)/(modul*(zahnzahl_sonne +  zahnzahl_planet))));
-                                                                        // Anzahl Planetenräder: höchstens so viele, wie ohne
-                                                                        // Überlappung möglich
-
-    // Zeichnung
-    rotate([0,0,180/zahnzahl_sonne*drehen]){
-        arrow_gear (modul, zahnzahl_sonne, width, bohrung, pressure_angle, -schraegungswinkel, optimized);      // Sonnenrad
+/* Planetary gear; uses the modules "arrow_gear" and "arrow_ring_gear"
+ modul = height of the tooth tip over the cone
+ num_teeth_sun = number of teeth of the sun gear
+ num_teeth_planet = number of teeth of a planetary gear
+ number_planets = number of planet gears. If null, the function will calculate the minimum number.
+ width = tooth width
+ border width = width of the border from root circle
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle to the axis of rotation, standard value = 0 ° (straight toothing)
+ assembled =
+ optimized = holes for material / weight saving resp. Create surface enhancement if geometry allows
+ assembled = components assembled for construction or apart from 3D printing */
+module planetary_gear(modul, num_teeth_sun, num_teeth_planet, number_planet, width, edge_width, drilling, pressure_angle=20, helix_angle=0, assembled=true, optimized=true){
+    
+    // Dimension calculations
+    d_sun = modul*num_teeth_sun;                                     // pitch circle sun
+    d_planet = modul*num_teeth_planet;                                   // pitch circle planet
+    achsabstand = modul*(num_teeth_sun +  num_teeth_planet) / 2;        // Distance from sun gear / ring gear axis
+    num_teeth_hohlrad = num_teeth_sun + 2*num_teeth_planet;              // Number of teeth of the ring gear
+    d_hohlrad = modul*num_teeth_hohlrad;                                 // pitch circle ring gear
+    
+    rotate = isstraight(num_teeth_planet);                                // Does the sun gear have to be turned?
+    
+    n_max = floor(180/asin(modul*(num_teeth_planet)/(modul*(num_teeth_sun +  num_teeth_planet))));
+    // Number of planet gears: at most as many as without
+    // overlap possible
+    
+    // drawing
+    rotate([0,0,180/num_teeth_sun*rotate]){
+        arrow_gear (modul, num_teeth_sun, width, drilling, pressure_angle, -helix_angle, optimized);      // sun wheel
     }
-
-    if (zusammen_gebaut){
-        if(anzahl_planeten==0){
-            list = [ for (n=[2 : 1 : n_max]) if ((((zahnzahl_hohlrad+zahnzahl_sonne)/n)==floor((zahnzahl_hohlrad+zahnzahl_sonne)/n))) n];
-            anzahl_planeten = list[0];                                      // Ermittele Anzahl Planetenräder
-             achsabstand = modul*(zahnzahl_sonne + zahnzahl_planet)/2;      // Abstand von Sonnenrad-/Hohlradachse
-            for(n=[0:1:anzahl_planeten-1]){
-                translate(kugel_zu_kart([achsabstand,90,360/anzahl_planeten*n]))
-                    rotate([0,0,n*360*d_sonne/d_planet])
-                        arrow_gear (modul, zahnzahl_planet, width, bohrung, pressure_angle, schraegungswinkel); // Planetenräder
+    
+    if (assembled){
+        if(number_planet==0){
+            list = [ for (n=[2 : 1 : n_max]) if ((((num_teeth_hohlrad+num_teeth_sun)/n)==floor((num_teeth_hohlrad+num_teeth_sun)/n))) n];
+            number_planet = list[0];                                      // Determine Number of Planetary Wheels
+            achsabstand = modul*(num_teeth_sun + num_teeth_planet)/2;      // Distance from sun gear / ring gear axis
+            for(n=[0:1:number_planet-1]){
+                translate(ball_to_cart([achsabstand,90,360/number_planet*n]))
+                rotate([0,0,n*360*d_sun/d_planet])
+                arrow_gear (modul, num_teeth_planet, width, drilling, pressure_angle, helix_angle); // planet wheels
             }
-       }
-       else{
-            achsabstand = modul*(zahnzahl_sonne + zahnzahl_planet)/2;       // Abstand von Sonnenrad-/Hohlradachse
-            for(n=[0:1:anzahl_planeten-1]){
-                translate(kugel_zu_kart([achsabstand,90,360/anzahl_planeten*n]))
-                rotate([0,0,n*360*d_sonne/(d_planet)])
-                    arrow_gear (modul, zahnzahl_planet, width, bohrung, pressure_angle, schraegungswinkel); // Planetenräder
+        }
+        else{
+            achsabstand = modul*(num_teeth_sun + num_teeth_planet)/2;       // Distance from sun gear / ring gear axis
+            for(n=[0:1:number_planet-1]){
+                translate(ball_to_cart([achsabstand,90,360/number_planet*n]))
+                rotate([0,0,n*360*d_sun/(d_planet)])
+                arrow_gear (modul, num_teeth_planet, width, drilling, pressure_angle, helix_angle); // planet wheels
             }
         }
     }
     else{
-        planetenabstand = zahnzahl_hohlrad*modul/2+randbreite+d_planet;     // Abstand Planeten untereinander
-        for(i=[-(anzahl_planeten-1):2:(anzahl_planeten-1)]){
-            translate([planetenabstand, d_planet*i,0])
-                arrow_gear (modul, zahnzahl_planet, width, bohrung, pressure_angle, schraegungswinkel); // Planetenräder
+        planet_distance = num_teeth_hohlrad*modul/2+edge_width+d_planet;     // distance planets among each other
+        for(i=[-(number_planet-1):2:(number_planet-1)]){
+            translate([planet_distance, d_planet*i,0])
+            arrow_gear (modul, num_teeth_planet, width, drilling, pressure_angle, helix_angle); // planet wheels
         }
     }
-
-    arrow_ring_gear (modul, zahnzahl_hohlrad, width, randbreite, pressure_angle, schraegungswinkel); // Hohlrad
-
+    
+    arrow_ring_gear (modul, num_teeth_hohlrad, width, edge_width, pressure_angle, helix_angle); // ring gear
+    
 }
 
-/*  Kegelrad
-    modul = Höhe des Zahnkopfes über dem Teilkegel; Angabe für die Aussenseite des Kegels
-    tooth_number = Anzahl der Radzähne
-    teilkegelwinkel = (Halb)winkel des Kegels, auf dem das jeweils andere Hohlrad abrollt
-    zahnbreite = Breite der Zähne von der Außenseite in Richtung Kegelspitze
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel, Standardwert = 0° */
-module bevel_gear(modul, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle = 20, schraegungswinkel=0) {
-
-    // Dimensions-Berechnungen
-    d_aussen = modul * tooth_number;                                    // Teilkegeldurchmesser auf der Kegelgrundfläche,
-                                                                    // entspricht der Sehne im Kugelschnitt
-    r_aussen = d_aussen / 2;                                        // Teilkegelradius auf der Kegelgrundfläche 
-    rg_aussen = r_aussen/sin(teilkegelwinkel);                      // Großkegelradius für Zahn-Außenseite, entspricht der Länge der Kegelflanke;
-    rg_innen = rg_aussen - zahnbreite;                              // Großkegelradius für Zahn-Innenseite  
-    r_innen = r_aussen*rg_innen/rg_aussen;
-    alpha_stirn = atan(tan(pressure_angle)/cos(schraegungswinkel));// Schrägungswinkel im Stirnschnitt
-    delta_b = asin(cos(alpha_stirn)*sin(teilkegelwinkel));          // Grundkegelwinkel     
-    da_aussen = (modul <1)? d_aussen + (modul * 2.2) * cos(teilkegelwinkel): d_aussen + modul * 2 * cos(teilkegelwinkel);
-    ra_aussen = da_aussen / 2;
-    delta_a = asin(ra_aussen/rg_aussen);
-    c = modul / 6;                                                  // Kopfspiel
-    df_aussen = d_aussen - (modul +c) * 2 * cos(teilkegelwinkel);
-    rf_aussen = df_aussen / 2;
-    delta_f = asin(rf_aussen/rg_aussen);
-    rkf = rg_aussen*sin(delta_f);                                   // Radius des Kegelfußes
-    hoehe_f = rg_aussen*cos(delta_f);                               // Höhe des Kegels vom Fußkegel
+/* Bevel gear
+ modul = height of the tooth tip above the cone; Specification for the outside of the cone
+ tooth_number = number of wheel teeth
+ part cone angle = (half) angle of the cone on which the other ring gear rolls
+ tooth width = width of the teeth from the outside in the direction of the apex of the cone
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle, standard value = 0 ° */
+module bevel_gear(modul, tooth_number, partial_cone_angle, tooth_wide, drilling, pressure_angle = 20, helix_angle=0) {
     
-    echo("Teilkegeldurchmesser auf der Kegelgrundfläche = ", d_aussen);
+    // Dimension calculations
+    d_outside = modul * tooth_number;                                    // pitch cone diameter on the cone base,
+    // corresponds to the chord in a spherical section
+    r_outside = d_outside / 2;                                        // Part cone radius on the cone base
+    rg_outside = r_outside/sin(partial_cone_angle);                      // Big bevel radius for tooth outside, corresponds to the length of the cone flank;
+    rg_inner = rg_outside - tooth_wide;                              // Big bevel radius for inside tooth
+    r_inner = r_outside*rg_inner/rg_outside;
+    alpha_front = atan(tan(pressure_angle)/cos(helix_angle));// helix angle in frontal section
+    delta_b = asin(cos(alpha_front)*sin(partial_cone_angle));          // base cone angle
+    da_outside = (modul <1)? d_outside + (modul * 2.2) * cos(partial_cone_angle): d_outside + modul * 2 * cos(partial_cone_angle);
+    ra_outside = da_outside / 2;
+    delta_a = asin(ra_outside/rg_outside);
+    c = modul / 6;                                                  // head play
+    df_outside = d_outside - (modul +c) * 2 * cos(partial_cone_angle);
+    rf_outside = df_outside / 2;
+    delta_f = asin(rf_outside/rg_outside);
+    rkf = rg_outside*sin(delta_f);                                   // Radius of the cone foot
+    height_f = rg_outside*cos(delta_f);                               // Height of the cone from the foot cone
     
-    // Größen für Komplementär-Kegelstumpf
-    hoehe_k = (rg_aussen-zahnbreite)/cos(teilkegelwinkel);          // Höhe des Komplementärkegels für richtige Zahnlänge
-    rk = (rg_aussen-zahnbreite)/sin(teilkegelwinkel);               // Fußradius des Komplementärkegels
-    rfk = rk*hoehe_k*tan(delta_f)/(rk+hoehe_k*tan(delta_f));        // Kopfradius des Zylinders für 
-                                                                    // Komplementär-Kegelstumpf
-    hoehe_fk = rk*hoehe_k/(hoehe_k*tan(delta_f)+rk);                // Hoehe des Komplementär-Kegelstumpfs
-
-    echo("Höhe Kegelrad = ", hoehe_f-hoehe_fk);
+    echo("Part cone diameter on the cone base = ", d_outside);
     
-    phi_r = kugelev(delta_b, teilkegelwinkel);                      // Winkel zum Punkt der Evolvente auf Teilkegel
-        
-    // Torsionswinkel gamma aus Schrägungswinkel
-    gamma_g = 2*atan(zahnbreite*tan(schraegungswinkel)/(2*rg_aussen-zahnbreite));
-    gamma = 2*asin(rg_aussen/r_aussen*sin(gamma_g/2));
+    // sizes for complementary truncated cone
+    height_k = (rg_outside-tooth_wide)/cos(partial_cone_angle);          // height of the complementary cone for correct tooth length
+    rk = (rg_outside-tooth_wide)/sin(partial_cone_angle);               // Foot radius of the complementary cone
+    rfk = rk*height_k*tan(delta_f)/(rk+height_k*tan(delta_f));        // head radius of the cylinder for
+    // Complementary truncated cone
+    height_fk = rk*height_k/(height_k*tan(delta_f)+rk);                // height of the complementary truncated cone
     
-    schritt = (delta_a - delta_b)/16;
-    tau = 360/tooth_number;                                             // Teilungswinkel
+    echo("Height bevel gear = ", height_f-height_fk);
+    
+    phi_r = ball_ev(delta_b, partial_cone_angle);                      // Angle to point of involute on partial cone
+    
+    // torsion angle gamma from helix angle
+    gamma_g = 2*atan(tooth_wide*tan(helix_angle)/(2*rg_outside-tooth_wide));
+    gamma = 2*asin(rg_outside/r_outside*sin(gamma_g/2));
+    
+    step = (delta_a - delta_b)/16;
+    tau = 360/tooth_number;                                             // pitch angle
     start = (delta_b > delta_f) ? delta_b : delta_f;
-    spiegelpunkt = (180*(1-spiel))/tooth_number+2*phi_r;
-
+    mirror_point = (180*(1-play))/tooth_number+2*phi_r;
+    
     // Zeichnung
-    rotate([0,0,phi_r+90*(1-spiel)/tooth_number]){                      // Zahn auf x-Achse zentrieren;
-                                                                    // macht Ausrichtung mit anderen Rädern einfacher
-        translate([0,0,hoehe_f]) rotate(a=[0,180,0]){
+    rotate([0,0,phi_r+90*(1-play)/tooth_number]){                      //center tooth on x-axis;
+        // makes alignment with other wheels easier
+        translate([0,0,height_f]) rotate(a=[0,180,0]){
             union(){
-                translate([0,0,hoehe_f]) rotate(a=[0,180,0]){                               // Kegelstumpf                          
+                translate([0,0,height_f]) rotate(a=[0,180,0]){                               // truncated cone
                     difference(){
-                        linear_extrude(height=hoehe_f-hoehe_fk, scale=rfk/rkf) circle(rkf*1.001); // 1 promille Überlappung mit Zahnfuß
+                        linear_extrude(height=height_f-height_fk, scale=rfk/rkf) circle(rkf*1.001); // 1 per mil overlap with tooth root
                         translate([0,0,-1]){
-                            cylinder(h = hoehe_f-hoehe_fk+2, r = bohrung/2);                // Bohrung
+                            cylinder(h = height_f-height_fk+2, r = drilling/2);                // Drilling
                         }
-                    }   
+                    }
                 }
                 for (rot = [0:tau:360]){
-                    rotate (rot) {                                                          // "Zahnzahl-mal" kopieren und drehen
+                    rotate (rot) {                                                          // copy and rotate "number of teeth"
                         union(){
                             if (delta_b > delta_f){
-                                // Zahnfuß
-                                flankenpunkt_unten = 1*spiegelpunkt;
-                                flankenpunkt_oben = kugelev(delta_f, start);
+                                // tooth root
+                                edge_below = 1*mirror_point;
+                                edge_above = ball_ev(delta_f, start);
                                 polyhedron(
-                                    points = [
-                                        kugel_zu_kart([rg_aussen, start*1.001, flankenpunkt_unten]),    // 1 promille Überlappung mit Zahn
-                                        kugel_zu_kart([rg_innen, start*1.001, flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_innen, start*1.001, spiegelpunkt-flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_aussen, start*1.001, spiegelpunkt-flankenpunkt_unten]),                               
-                                        kugel_zu_kart([rg_aussen, delta_f, flankenpunkt_unten]),
-                                        kugel_zu_kart([rg_innen, delta_f, flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_innen, delta_f, spiegelpunkt-flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_aussen, delta_f, spiegelpunkt-flankenpunkt_unten])                                
-                                    ],
-                                    faces = [[0,1,2],[0,2,3],[0,4,1],[1,4,5],[1,5,2],[2,5,6],[2,6,3],[3,6,7],[0,3,7],[0,7,4],[4,6,5],[4,7,6]],
-                                    convexity =1
-                                );
+                                           points = [
+                                                     ball_to_cart([rg_outside, start*1.001, edge_below]),    // 1 per mil overlap with tooth
+                                                     ball_to_cart([rg_inner, start*1.001, edge_below+gamma]),
+                                                     ball_to_cart([rg_inner, start*1.001, mirror_point-edge_below+gamma]),
+                                                     ball_to_cart([rg_outside, start*1.001, mirror_point-edge_below]),
+                                                     ball_to_cart([rg_outside, delta_f, edge_below]),
+                                                     ball_to_cart([rg_inner, delta_f, edge_below+gamma]),
+                                                     ball_to_cart([rg_inner, delta_f, mirror_point-edge_below+gamma]),
+                                                     ball_to_cart([rg_outside, delta_f, mirror_point-edge_below])
+                                                     ],
+                                           faces = [[0,1,2],[0,2,3],[0,4,1],[1,4,5],[1,5,2],[2,5,6],[2,6,3],[3,6,7],[0,3,7],[0,7,4],[4,6,5],[4,7,6]],
+                                           convexity =1
+                                           );
                             }
-                            // Zahn
-                            for (delta = [start:schritt:delta_a-schritt]){
-                                flankenpunkt_unten = kugelev(delta_b, delta);
-                                flankenpunkt_oben = kugelev(delta_b, delta+schritt);
+                            // tooth
+                            for (delta = [start:step:delta_a-step]){
+                                edge_below = ball_ev(delta_b, delta);
+                                edge_above = ball_ev(delta_b, delta+step);
                                 polyhedron(
-                                    points = [
-                                        kugel_zu_kart([rg_aussen, delta, flankenpunkt_unten]),
-                                        kugel_zu_kart([rg_innen, delta, flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_innen, delta, spiegelpunkt-flankenpunkt_unten+gamma]),
-                                        kugel_zu_kart([rg_aussen, delta, spiegelpunkt-flankenpunkt_unten]),                             
-                                        kugel_zu_kart([rg_aussen, delta+schritt, flankenpunkt_oben]),
-                                        kugel_zu_kart([rg_innen, delta+schritt, flankenpunkt_oben+gamma]),
-                                        kugel_zu_kart([rg_innen, delta+schritt, spiegelpunkt-flankenpunkt_oben+gamma]),
-                                        kugel_zu_kart([rg_aussen, delta+schritt, spiegelpunkt-flankenpunkt_oben])                                   
-                                    ],
-                                    faces = [[0,1,2],[0,2,3],[0,4,1],[1,4,5],[1,5,2],[2,5,6],[2,6,3],[3,6,7],[0,3,7],[0,7,4],[4,6,5],[4,7,6]],
-                                    convexity =1
-                                );
+                                           points = [
+                                                     ball_to_cart([rg_outside, delta, edge_below]),
+                                                     ball_to_cart([rg_inner, delta, edge_below+gamma]),
+                                                     ball_to_cart([rg_inner, delta, mirror_point-edge_below+gamma]),
+                                                     ball_to_cart([rg_outside, delta, mirror_point-edge_below]),
+                                                     ball_to_cart([rg_outside, delta+step, edge_above]),
+                                                     ball_to_cart([rg_inner, delta+step, edge_above+gamma]),
+                                                     ball_to_cart([rg_inner, delta+step, mirror_point-edge_above+gamma]),
+                                                     ball_to_cart([rg_outside, delta+step, mirror_point-edge_above])
+                                                     ],
+                                           faces = [[0,1,2],[0,2,3],[0,4,1],[1,4,5],[1,5,2],[2,5,6],[2,6,3],[3,6,7],[0,3,7],[0,7,4],[4,6,5],[4,7,6]],
+                                           convexity =1
+                                           );
                             }
                         }
                     }
-                }   
+                }
             }
         }
     }
 }
 
-/*  Pfeil-Kegelrad; verwendet das Modul "bevel_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    tooth_number = Anzahl der Radzähne
-    teilkegelwinkel, zahnbreite
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel, Standardwert = 0° */
-module bevel_arrow_gear(modul, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle = 20, schraegungswinkel=0){
-
-    // Dimensions-Berechnungen
+/* Arrow bevel gear; uses the module "bevel_gear"
+ modul = height of the tooth tip over the pitch circle
+ tooth_number = number of wheel teeth
+ Part cone angle, tooth width
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle, standard value = 0 ° */
+module bevel_arrow_gear(modul, tooth_number, partial_cone_angle, tooth_wide, drilling, pressure_angle = 20, helix_angle=0){
     
-    zahnbreite = zahnbreite / 2;
+    // Dimension calculations
     
-    d_aussen = modul * tooth_number;                                // Teilkegeldurchmesser auf der Kegelgrundfläche,
-                                                                // entspricht der Sehne im Kugelschnitt
-    r_aussen = d_aussen / 2;                                    // Teilkegelradius auf der Kegelgrundfläche 
-    rg_aussen = r_aussen/sin(teilkegelwinkel);                  // Großkegelradius, entspricht der Länge der Kegelflanke;
-    c = modul / 6;                                              // Kopfspiel
-    df_aussen = d_aussen - (modul +c) * 2 * cos(teilkegelwinkel);
-    rf_aussen = df_aussen / 2;
-    delta_f = asin(rf_aussen/rg_aussen);
-    hoehe_f = rg_aussen*cos(delta_f);                           // Höhe des Kegels vom Fußkegel
-
-    // Torsionswinkel gamma aus Schrägungswinkel
-    gamma_g = 2*atan(zahnbreite*tan(schraegungswinkel)/(2*rg_aussen-zahnbreite));
-    gamma = 2*asin(rg_aussen/r_aussen*sin(gamma_g/2));
+    tooth_wide = tooth_wide / 2;
     
-    echo("Teilkegeldurchmesser auf der Kegelgrundfläche = ", d_aussen);
+    d_outside = modul * tooth_number;                                // pitch cone diameter on the cone base,
+    // corresponds to the chord in a spherical section
+    r_outside = d_outside / 2;                                    // Part cone radius on the cone base
+    rg_outside = r_outside/sin(partial_cone_angle);                  // big taper radius, corresponds to the length of the cone flank;
+    c = modul / 6;                                              // head play
+    df_outside = d_outside - (modul +c) * 2 * cos(partial_cone_angle);
+    rf_outside = df_outside / 2;
+    delta_f = asin(rf_outside/rg_outside);
+    height_f = rg_outside*cos(delta_f);                           // Height of the cone from the foot cone
     
-    // Größen für Komplementär-Kegelstumpf
-    hoehe_k = (rg_aussen-zahnbreite)/cos(teilkegelwinkel);      // Höhe des Komplementärkegels für richtige Zahnlänge
-    rk = (rg_aussen-zahnbreite)/sin(teilkegelwinkel);           // Fußradius des Komplementärkegels
-    rfk = rk*hoehe_k*tan(delta_f)/(rk+hoehe_k*tan(delta_f));    // Kopfradius des Zylinders für 
-                                                                // Komplementär-Kegelstumpf
-    hoehe_fk = rk*hoehe_k/(hoehe_k*tan(delta_f)+rk);            // Hoehe des Komplementär-Kegelstumpfs
+    // torsion angle gamma from helix angle
+    gamma_g = 2*atan(tooth_wide*tan(helix_angle)/(2*rg_outside-tooth_wide));
+    gamma = 2*asin(rg_outside/r_outside*sin(gamma_g/2));
     
-    modul_innen = modul*(1-zahnbreite/rg_aussen);
-
-        union(){
-        bevel_gear(modul, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle, schraegungswinkel);        // untere Hälfte
-        translate([0,0,hoehe_f-hoehe_fk])
-            rotate(a=-gamma,v=[0,0,1])
-                bevel_gear(modul_innen, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle, -schraegungswinkel); // obere Hälfte
+    echo("pitch cone diameter on the cone base = ", d_outside);
+    
+    // sizes for complementary truncated cone
+    height_k = (rg_outside-tooth_wide)/cos(partial_cone_angle);      // height of the complementary cone for correct tooth length
+    rk = (rg_outside-tooth_wide)/sin(partial_cone_angle);           // Foot radius of the complementary cone
+    rfk = rk*height_k*tan(delta_f)/(rk+height_k*tan(delta_f));    // head radius of the cylinder for
+    // Complementary truncated cone
+    height_fk = rk*height_k/(height_k*tan(delta_f)+rk);            // height of the complementary truncated cone
+    
+    modul_inner = modul*(1-tooth_wide/rg_outside);
+    
+    union(){
+        bevel_gear(modul, tooth_number, partial_cone_angle, tooth_wide, drilling, pressure_angle, helix_angle);        // bottom half
+        translate([0,0,height_f-height_fk])
+        rotate(a=-gamma,v=[0,0,1])
+        bevel_gear(modul_inner, tooth_number, partial_cone_angle, tooth_wide, drilling, pressure_angle, -helix_angle); // top half
     }
 }
 
-/*  Spiral-Kegelrad; verwendet das Modul "bevel_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkreis
-    tooth_number = Anzahl der Radzähne
-    hoehe = Höhe des Zahnrads
-    bohrung = Durchmesser der Mittelbohrung
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel, Standardwert = 0° */
-module spiralkegelrad(modul, tooth_number, teilkegelwinkel, zahnbreite, bohrung, pressure_angle = 20, schraegungswinkel=30){
+/* Spiral bevel gear; uses the module "bevel_gear"
+ modul = height of the tooth tip over the pitch circle
+ tooth_number = number of wheel teeth
+ height = height of the gear
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle, standard value = 0 ° */
 
-    schritte = 16;
-
-    // Dimensions-Berechnungen
+//ACK NOTE: unused function???? spiralkegelrad = spiral bevel
+module spiralkegelrad(modul, tooth_number, partial_cone_angle, tooth_wide, drilling, pressure_angle = 20, helix_angle=30){
     
-    b = zahnbreite / schritte;  
-    d_aussen = modul * tooth_number;                                // Teilkegeldurchmesser auf der Kegelgrundfläche,
-                                                                // entspricht der Sehne im Kugelschnitt
-    r_aussen = d_aussen / 2;                                    // Teilkegelradius auf der Kegelgrundfläche 
-    rg_aussen = r_aussen/sin(teilkegelwinkel);                  // Großkegelradius, entspricht der Länge der Kegelflanke;
-    rg_mitte = rg_aussen-zahnbreite/2;
-
-    echo("Teilkegeldurchmesser auf der Kegelgrundfläche = ", d_aussen);
-
-    a=tan(schraegungswinkel)/rg_mitte;
+    steps = 16;
+    
+    // Dimension calculations
+    
+    b = tooth_wide / steps;
+    d_outside = modul * tooth_number;                                // pitch cone diameter on the cone base,
+    // corresponds to the chord in a spherical section
+    r_outside = d_outside / 2;                                    // Part cone radius on the cone base
+    rg_outside = r_outside/sin(partial_cone_angle);                  // big taper radius, corresponds to the length of the cone flank;
+    rg_center = rg_outside-tooth_wide/2;
+    
+    echo("Part cone diameter on the cone base = ", d_outside);
+    
+    a=tan(helix_angle)/rg_center;
     
     union(){
-    for(i=[0:1:schritte-1]){
-        r = rg_aussen-i*b;
-        schraegungswinkel = a*r;
-        modul_r = modul-b*i/rg_aussen;
-        translate([0,0,b*cos(teilkegelwinkel)*i])
+        for(i=[0:1:steps-1]){
+            r = rg_outside-i*b;
+            helix_angle = a*r;
+            modul_r = modul-b*i/rg_outside;
+            translate([0,0,b*cos(partial_cone_angle)*i])
             
-            rotate(a=-schraegungswinkel*i,v=[0,0,1])
-                bevel_gear(modul_r, tooth_number, teilkegelwinkel, b, bohrung, pressure_angle, schraegungswinkel);   // obere Hälfte
+            rotate(a=-helix_angle*i,v=[0,0,1])
+            bevel_gear(modul_r, tooth_number, partial_cone_angle, b, drilling, pressure_angle, helix_angle);   // upper half
         }
     }
 }
 
-/*  Kegelradpaar mit beliebigem Achsenwinkel; verwendet das Modul "bevel_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkegel; Angabe für die Aussenseite des Kegels
-    zahnzahl_rad = Anzahl der Radzähne am Rad
-    zahnzahl_ritzel = Anzahl der Radzähne am Ritzel
-    achsenwinkel = Winkel zwischen den Achsen von Rad und Ritzel
-    zahnbreite = Breite der Zähne von der Außenseite in Richtung Kegelspitze
-    bohrung_rad = Durchmesser der Mittelbohrung des Rads
-    bohrung_ritzel = Durchmesser der Mittelbohrungen des Ritzels
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel, Standardwert = 0°
-    zusammen_gebaut = Komponenten zusammengebaut für Konstruktion oder auseinander zum 3D-Druck */
-module bevel_gear_pair(modul, zahnzahl_rad, zahnzahl_ritzel, achsenwinkel=90, zahnbreite, bohrung_rad, bohrung_ritzel, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true){
- 
-    // Dimensions-Berechnungen
-    r_rad = modul*zahnzahl_rad/2;                           // Teilkegelradius des Rads
-    delta_rad = atan(sin(achsenwinkel)/(zahnzahl_ritzel/zahnzahl_rad+cos(achsenwinkel)));   // Kegelwinkel des Rads
-    delta_ritzel = atan(sin(achsenwinkel)/(zahnzahl_rad/zahnzahl_ritzel+cos(achsenwinkel)));// Kegelwingel des Ritzels
-    rg = r_rad/sin(delta_rad);                              // Radius der Großkugel
-    c = modul / 6;                                          // Kopfspiel
-    df_ritzel = pi*rg*delta_ritzel/90 - 2 * (modul + c);    // Fußkegeldurchmesser auf der Großkugel 
-    rf_ritzel = df_ritzel / 2;                              // Fußkegelradius auf der Großkugel
-    delta_f_ritzel = rf_ritzel/(pi*rg) * 180;               // Kopfkegelwinkel
-    rkf_ritzel = rg*sin(delta_f_ritzel);                    // Radius des Kegelfußes
-    hoehe_f_ritzel = rg*cos(delta_f_ritzel);                // Höhe des Kegels vom Fußkegel
+/* Bevel gear pair with any axis angle; uses the module "bevel_gear"
+ modul = height of the tooth tip above the cone; Specification for the outside of the cone
+ num_of_teeth = number of wheel teeth on the wheel
+ Number of teeth = number of gear teeth on the pinion
+ Axle Angle = Angle between the axles of the wheel and pinion
+ tooth width = width of the teeth from the outside in the direction of the apex of the cone
+ bore_rad = diameter of the center bore of the wheel
+ Bore_pinion = diameter of the center holes of the pinion
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle, standard value = 0 °
+ assembled = components assembled for construction or apart from 3D printing */
+module bevel_gear_pair(modul, num_of_teeth, num_teeth_pinion, axis_angle=90, tooth_wide, borehole_rad, borehole_pinion, pressure_angle=20, helix_angle=0, assembled=true){
     
-    echo("Kegelwinkel Rad = ", delta_rad);
-    echo("Kegelwinkel Ritzel = ", delta_ritzel);
- 
-    df_rad = pi*rg*delta_rad/90 - 2 * (modul + c);          // Fußkegeldurchmesser auf der Großkugel 
-    rf_rad = df_rad / 2;                                    // Fußkegelradius auf der Großkugel
-    delta_f_rad = rf_rad/(pi*rg) * 180;                     // Kopfkegelwinkel
-    rkf_rad = rg*sin(delta_f_rad);                          // Radius des Kegelfußes
-    hoehe_f_rad = rg*cos(delta_f_rad);                      // Höhe des Kegels vom Fußkegel
-
-    echo("Höhe Rad = ", hoehe_f_rad);
-    echo("Höhe Ritzel = ", hoehe_f_ritzel);
+    // Dimension calculations
+    r_rad = modul*num_of_teeth/2;                           // Part cone radius of the wheel
+    delta_rad = atan(sin(axis_angle)/(num_teeth_pinion/num_of_teeth+cos(axis_angle)));   // cone angle of the wheel
+    delta_pinion = atan(sin(axis_angle)/(num_of_teeth/num_teeth_pinion+cos(axis_angle)));// Cone angle of the pinion
+    rg = r_rad/sin(delta_rad);                              // Radius of the big ball
+    c = modul / 6;                                          // head play
+    df_pinion = pi*rg*delta_pinion/90 - 2 * (modul + c);    // Taper diameter on the big ball
+    rf_pinion = df_pinion / 2;                              // Foot cone radius on the big ball
+    delta_f_pinion = rf_pinion/(pi*rg) * 180;               // head cone angle
+    rkf_pinion = rg*sin(delta_f_pinion);                    // Radius of the cone foot
+    height_f_pinion = rg*cos(delta_f_pinion);                // Height of the cone from the foot cone
     
-    drehen = istgerade(zahnzahl_ritzel);
+    echo("Cone angle wheel = ", delta_rad);
+    echo("Cone angle pinion = ", delta_pinion);
     
-    // Zeichnung
-    // Rad
-    rotate([0,0,180*(1-spiel)/zahnzahl_rad*drehen])
-        bevel_gear(modul, zahnzahl_rad, delta_rad, zahnbreite, bohrung_rad, pressure_angle, schraegungswinkel);
+    df_rad = pi*rg*delta_rad/90 - 2 * (modul + c);          // Taper diameter on the big ball
+    rf_rad = df_rad / 2;                                    // Foot cone radius on the big ball
+    delta_f_rad = rf_rad/(pi*rg) * 180;                     // head cone angle
+    rkf_rad = rg*sin(delta_f_rad);                          // Radius of the cone foot
+    height_f_rad = rg*cos(delta_f_rad);                      // Height of the cone from the foot cone
     
-    // Ritzel
-    if (zusammen_gebaut)
-        translate([-hoehe_f_ritzel*cos(90-achsenwinkel),0,hoehe_f_rad-hoehe_f_ritzel*sin(90-achsenwinkel)])
-            rotate([0,achsenwinkel,0])
-                bevel_gear(modul, zahnzahl_ritzel, delta_ritzel, zahnbreite, bohrung_ritzel, pressure_angle, -schraegungswinkel);
+    echo("Height wheel = ", height_f_rad);
+    echo("Height pinion = ", height_f_pinion);
+    
+    rotate = isstraight(num_teeth_pinion);
+    
+    // drawing
+    // rad
+    rotate([0,0,180*(1-play)/num_of_teeth*rotate])
+    bevel_gear(modul, num_of_teeth, delta_rad, tooth_wide, borehole_rad, pressure_angle, helix_angle);
+    
+    // pinion
+    if (assembled)
+        translate([-height_f_pinion*cos(90-axis_angle),0,height_f_rad-height_f_pinion*sin(90-axis_angle)])
+        rotate([0,axis_angle,0])
+        bevel_gear(modul, num_teeth_pinion, delta_pinion, tooth_wide, borehole_pinion, pressure_angle, -helix_angle);
     else
-        translate([rkf_ritzel*2+modul+rkf_rad,0,0])
-            bevel_gear(modul, zahnzahl_ritzel, delta_ritzel, zahnbreite, bohrung_ritzel, pressure_angle, -schraegungswinkel);
- }
+        translate([rkf_pinion*2+modul+rkf_rad,0,0])
+        bevel_gear(modul, num_teeth_pinion, delta_pinion, tooth_wide, borehole_pinion, pressure_angle, -helix_angle);
+}
 
-/*  Pfeil-Kegelradpaar mit beliebigem Achsenwinkel; verwendet das Modul "bevel_arrow_gear"
-    modul = Höhe des Zahnkopfes über dem Teilkegel; Angabe für die Aussenseite des Kegels
-    zahnzahl_rad = Anzahl der Radzähne am Rad
-    zahnzahl_ritzel = Anzahl der Radzähne am Ritzel
-    achsenwinkel = Winkel zwischen den Achsen von Rad und Ritzel
-    zahnbreite = Breite der Zähne von der Außenseite in Richtung Kegelspitze
-    bohrung_rad = Durchmesser der Mittelbohrung des Rads
-    bohrung_ritzel = Durchmesser der Mittelbohrungen des Ritzels
-    pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-    schraegungswinkel = Schrägungswinkel, Standardwert = 0°
-    zusammen_gebaut = Komponenten zusammengebaut für Konstruktion oder auseinander zum 3D-Druck */
-module bevel_arrow_gear_pair(modul, zahnzahl_rad, zahnzahl_ritzel, achsenwinkel=90, zahnbreite, bohrung_rad, bohrung_ritzel, pressure_angle = 20, schraegungswinkel=10, zusammen_gebaut=true){
- 
-    r_rad = modul*zahnzahl_rad/2;                           // Teilkegelradius des Rads
-    delta_rad = atan(sin(achsenwinkel)/(zahnzahl_ritzel/zahnzahl_rad+cos(achsenwinkel)));   // Kegelwinkel des Rads
-    delta_ritzel = atan(sin(achsenwinkel)/(zahnzahl_rad/zahnzahl_ritzel+cos(achsenwinkel)));// Kegelwingel des Ritzels
-    rg = r_rad/sin(delta_rad);                              // Radius der Großkugel
-    c = modul / 6;                                          // Kopfspiel
-    df_ritzel = pi*rg*delta_ritzel/90 - 2 * (modul + c);    // Fußkegeldurchmesser auf der Großkugel 
-    rf_ritzel = df_ritzel / 2;                              // Fußkegelradius auf der Großkugel
-    delta_f_ritzel = rf_ritzel/(pi*rg) * 180;               // Kopfkegelwinkel
-    rkf_ritzel = rg*sin(delta_f_ritzel);                    // Radius des Kegelfußes
-    hoehe_f_ritzel = rg*cos(delta_f_ritzel);                // Höhe des Kegels vom Fußkegel
+/* Arrow-bevel gear pair with any axis angle; uses the module "bevel_arrow_gear"
+ modul = height of the tooth tip above the cone; Specification for the outside of the cone
+ num_of_teeth = number of wheel teeth on the wheel
+ Number of teeth = number of gear teeth on the pinion
+ Axle Angle = Angle between the axles of the wheel and pinion
+ tooth width = width of the teeth from the outside in the direction of the apex of the cone
+ bore_rad = diameter of the center bore of the wheel
+ Bore_pinion = diameter of the center holes of the pinion
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ angle of inclination = helix angle, standard value = 0 °
+ assembled = components assembled for construction or apart from 3D printing */
+module bevel_arrow_gear_pair(modul, num_of_teeth, num_teeth_pinion, axis_angle=90, tooth_wide, borehole_rad, borehole_pinion, pressure_angle = 20, helix_angle=10, assembled=true){
     
-    echo("Kegelwinkel Rad = ", delta_rad);
-    echo("Kegelwinkel Ritzel = ", delta_ritzel);
- 
-    df_rad = pi*rg*delta_rad/90 - 2 * (modul + c);          // Fußkegeldurchmesser auf der Großkugel 
-    rf_rad = df_rad / 2;                                    // Fußkegelradius auf der Großkugel
-    delta_f_rad = rf_rad/(pi*rg) * 180;                     // Kopfkegelwinkel
-    rkf_rad = rg*sin(delta_f_rad);                          // Radius des Kegelfußes
-    hoehe_f_rad = rg*cos(delta_f_rad);                      // Höhe des Kegels vom Fußkegel
-
-    echo("Höhe Rad = ", hoehe_f_rad);
-    echo("Höhe Ritzel = ", hoehe_f_ritzel);
+    r_rad = modul*num_of_teeth/2;                           // Part cone radius of the wheel
+    delta_rad = atan(sin(axis_angle)/(num_teeth_pinion/num_of_teeth+cos(axis_angle)));   // cone angle of the wheel
+    delta_pinion = atan(sin(axis_angle)/(num_of_teeth/num_teeth_pinion+cos(axis_angle)));// Cone angle of the pinion
+    rg = r_rad/sin(delta_rad);                              // Radius of the big ball
+    c = modul / 6;                                          // head play
+    df_pinion = pi*rg*delta_pinion/90 - 2 * (modul + c);    // Taper diameter on the big ball
+    rf_pinion = df_pinion / 2;                              // Foot cone radius on the big ball
+    delta_f_pinion = rf_pinion/(pi*rg) * 180;               // head cone angle
+    rkf_pinion = rg*sin(delta_f_pinion);                    // Radius of the cone foot
+    height_f_pinion = rg*cos(delta_f_pinion);                // Height of the cone from the foot cone
     
-    drehen = istgerade(zahnzahl_ritzel);
+    echo("Cone angle wheel = ", delta_rad);
+    echo("Bevel angle pinion = ", delta_pinion);
+    
+    df_rad = pi*rg*delta_rad/90 - 2 * (modul + c);          // Taper diameter on the big ball
+    rf_rad = df_rad / 2;                                    // Foot cone radius on the big ball
+    delta_f_rad = rf_rad/(pi*rg) * 180;                     // head cone angle
+    rkf_rad = rg*sin(delta_f_rad);                          // Radius of the cone foot
+    height_f_rad = rg*cos(delta_f_rad);                      // Height of the cone from the foot cone
+    
+    echo("Height wheel = ", height_f_rad);
+    echo("Height pinion = ", height_f_pinion);
+    
+    rotate = isstraight(num_teeth_pinion);
     
     // Rad
-    rotate([0,0,180*(1-spiel)/zahnzahl_rad*drehen])
-        bevel_arrow_gear(modul, zahnzahl_rad, delta_rad, zahnbreite, bohrung_rad, pressure_angle, schraegungswinkel);
+    rotate([0,0,180*(1-play)/num_of_teeth*rotate])
+    bevel_arrow_gear(modul, num_of_teeth, delta_rad, tooth_wide, borehole_rad, pressure_angle, helix_angle);
     
-    // Ritzel
-    if (zusammen_gebaut)
-        translate([-hoehe_f_ritzel*cos(90-achsenwinkel),0,hoehe_f_rad-hoehe_f_ritzel*sin(90-achsenwinkel)])
-            rotate([0,achsenwinkel,0])
-                bevel_arrow_gear(modul, zahnzahl_ritzel, delta_ritzel, zahnbreite, bohrung_ritzel, pressure_angle, -schraegungswinkel);
+    // pinion
+    if (assembled)
+        translate([-height_f_pinion*cos(90-axis_angle),0,height_f_rad-height_f_pinion*sin(90-axis_angle)])
+        rotate([0,axis_angle,0])
+        bevel_arrow_gear(modul, num_teeth_pinion, delta_pinion, tooth_wide, borehole_pinion, pressure_angle, -helix_angle);
     else
-        translate([rkf_ritzel*2+modul+rkf_rad,0,0])
-            bevel_arrow_gear(modul, zahnzahl_ritzel, delta_ritzel, zahnbreite, bohrung_ritzel, pressure_angle, -schraegungswinkel);
-
+        translate([rkf_pinion*2+modul+rkf_rad,0,0])
+        bevel_arrow_gear(modul, num_teeth_pinion, delta_pinion, tooth_wide, borehole_pinion, pressure_angle, -helix_angle);
+    
 }
 
 /*
-Archimedean screw.
-modul = Höhe des Schneckenkopfes über dem Teilzylinder
-gangzahl = Anzahl der Gänge (Zähne) der Schnecke
-length = Länge der Schnecke
-bohrung = Durchmesser der Mittelbohrung
-pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-steigungswinkel = Steigungswinkel der Schnecke, entspricht 90° minus Schrägungswinkel. Positiver Steigungswinkel = rechtsdrehend.
-zusammen_gebaut = Komponenten zusammengebaut für Konstruktion oder auseinander zum 3D-Druck */
-module worm(modul, gangzahl, length, bohrung, pressure_angle=20, steigungswinkel, zusammen_gebaut=true){
-
-    // Dimensions-Berechnungen
-    c = modul / 6;                                              // Kopfspiel
-    r = modul*gangzahl/(2*sin(steigungswinkel));                // Teilzylinder-Radius
-    rf = r - modul - c;                                         // Fußzylinder-Radius
-    a = modul*gangzahl/(90*tan(pressure_angle));               // Spiralparameter
-    tau_max = 180/gangzahl*tan(pressure_angle);                // Winkel von Fuß zu Kopf in der Normalen
-    gamma = -rad*length/((rf+modul+c)*tan(steigungswinkel));    // Torsionswinkel für Extrusion
+ Archimedean screw.
+ modul = height of the screw head over the part cylinder
+ Number of gears = number of gears (teeth) of the worm
+ length = length of the screw
+ bore = diameter of the center hole
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ pitch angle = pitch angle of the worm, corresponds to 90 ° minus helix angle. Positive slope angle = clockwise.
+ assembled = components assembled for construction or apart from 3D printing */
+module worm(modul, transfer_coefficient, length, drilling, pressure_angle=20, gradient_angle, assembled=true){
     
-    schritt = tau_max/16;
+    // Dimension calculations
+    c = modul / 6;                                              // head play
+    r = modul*transfer_coefficient/(2*sin(gradient_angle));                // partial cylinder radius
+    rf = r - modul - c;                                         // Foot cylinder radius
+    a = modul*transfer_coefficient/(90*tan(pressure_angle));               // spiral parameters
+    tau_max = 180/transfer_coefficient*tan(pressure_angle);                // Angle from foot to head in the normal
+    gamma = -rad*length/((rf+modul+c)*tan(gradient_angle));    // torsion angle for extrusion
     
-    // Zeichnung: extrudiere mit Verwindung eine Flaeche, die von zwei archimedischen Spiralen eingeschlossen wird
-    if (zusammen_gebaut) {
+    step = tau_max/16;
+    
+    // Drawing: extrude with twist a surface enclosed by two Archimedean spirals
+    if (assembled) {
         rotate([0,0,tau_max]){
             linear_extrude(height = length, center = false, convexity = 10, twist = gamma){
                 difference(){
                     union(){
-                        for(i=[0:1:gangzahl-1]){
+                        for(i=[0:1:transfer_coefficient-1]){
                             polygon(
-                                concat(                         
-                                    [[0,0]],
-                                    
-                                    // ansteigende Zahnflanke
-                                    [for (tau = [0:schritt:tau_max])
-                                        pol_zu_kart([spirale(a, rf, tau), tau+i*(360/gangzahl)])],
-                                        
-                                    // Zahnkopf
-                                    [for (tau = [tau_max:schritt:180/gangzahl])
-                                        pol_zu_kart([spirale(a, rf, tau_max), tau+i*(360/gangzahl)])],
-                                    
-                                    // absteigende Zahnflanke
-                                    [for (tau = [180/gangzahl:schritt:(180/gangzahl+tau_max)])
-                                        pol_zu_kart([spirale(a, rf, 180/gangzahl+tau_max-tau), tau+i*(360/gangzahl)])]
-                                )
-                            );
+                                    concat(
+                                           [[0,0]],
+                                           
+                                           // rising tooth flank
+                                           [for (tau = [0:step:tau_max])
+                                            pole_to_cart([spiral(a, rf, tau), tau+i*(360/transfer_coefficient)])],
+                                           
+                                           // tooth head
+                                           [for (tau = [tau_max:step:180/transfer_coefficient])
+                                            pole_to_cart([spiral(a, rf, tau_max), tau+i*(360/transfer_coefficient)])],
+                                           
+                                           // descending tooth flank
+                                           [for (tau = [180/transfer_coefficient:step:(180/transfer_coefficient+tau_max)])
+                                            pole_to_cart([spiral(a, rf, 180/transfer_coefficient+tau_max-tau), tau+i*(360/transfer_coefficient)])]
+                                           )
+                                    );
                         }
                         circle(rf);
                     }
-                    circle(bohrung/2); // Mittelbohrung
+                    circle(drilling/2); // center hole
                 }
             }
         }
@@ -840,86 +843,114 @@ module worm(modul, gangzahl, length, bohrung, pressure_angle=20, steigungswinkel
             union(){
                 translate([1,r*1.5,0]){
                     rotate([90,0,90])
-                        worm(modul, gangzahl, length, bohrung, pressure_angle, steigungswinkel, zusammen_gebaut=true);
+                    worm(modul, transfer_coefficient, length, drilling, pressure_angle, gradient_angle, assembled=true);
                 }
                 translate([length+1,-r*1.5,0]){
                     rotate([90,0,-90])
-                        worm(modul, gangzahl, length, bohrung, pressure_angle, steigungswinkel, zusammen_gebaut=true);
-                    }
+                    worm(modul, transfer_coefficient, length, drilling, pressure_angle, gradient_angle, assembled=true);
                 }
+            }
             translate([length/2+1,0,-(r+modul+1)/2]){
-                    cube([length+2,3*r+2*(r+modul+1),r+modul+1], center = true);
-                }
+                cube([length+2,3*r+2*(r+modul+1),r+modul+1], center = true);
+            }
         }
     }
 }
 
 /*
-Calculates a worm wheel set. The worm wheel is an ordinary spur gear without globoidgeometry.
-modul = Height of the screw head above the partial cylinder or the tooth head above the pitch circle
-tooth_number = Number of wheel teeth
-gangzahl = Number of gears (teeth) of the screw
-width = Zahnbreite
-length = Länge der Schnecke
-bohrung_schnecke = Durchmesser der Mittelbohrung der Schnecke
-bohrung_rad = Durchmesser der Mittelbohrung des Stirnrads
-pressure_angle = Eingriffswinkel, Standardwert = 20° gemäß DIN 867. Sollte nicht größer als 45° sein.
-steigungswinkel = Pitch angle of the worm corresponds to 90 ° bevel angle. Positive slope angle = clockwise.
-optimized = Holes for material / weight savings
-zusammen_gebaut =  Components assembled for construction or apart for 3D printing */
-module worm_gear(modul, tooth_number, gangzahl, width, length, bohrung_schnecke, bohrung_rad, pressure_angle=20, steigungswinkel, optimized=true, zusammen_gebaut=true, show_spur=1, show_worm=1){
+ Calculates a worm wheel set. The worm wheel is an ordinary track gear without globoidgeometry.
+ modul = height of the screw head above the partial cylinder or the tooth head above the pitch circle
+ tooth_number = Number of wheel teeth
+ Number of gears (teeth) of the screw
+ width = tooth width
+ length = length of the screw
+ bore_screw = diameter of the center hole of the screw
+ bore_rad = diameter of the central bore of the spur gear
+ pressure_angle = pressure angle, standard value = 20 ° according to DIN 867. Should not be greater than 45 °.
+ pitch angle = pitch angle of the worm to 90 ° bevel angle. Positive slope angle = clockwise.
+ optimized = Holes for material / weight savings
+ assembled = Components assembled for 3D printing */
+module worm_gear(modul, tooth_number, transfer_coefficient, width, length, borehole_wormgear, borehole_rad, pressure_angle=20, gradient_angle, optimized=true, assembled=true, show_spur=1, show_worm=1){
     
-    c = modul / 6;                                              // Kopfspiel
-    r_schnecke = modul*gangzahl/(2*sin(steigungswinkel));       // Teilzylinder-Radius Schnecke
-    r_rad = modul*tooth_number/2;                                   // Teilkegelradius Stirnrad
-    rf_schnecke = r_schnecke - modul - c;                       // Fußzylinder-Radius
-    gamma = -90*width*sin(steigungswinkel)/(pi*r_rad);         // Rotationswinkel Stirnrad
-    zahnabstand = modul*pi/cos(steigungswinkel);                // Zahnabstand im Transversalschnitt
-    x = istgerade(gangzahl)? 0.5 : 1;
-
-    if (zusammen_gebaut) {
+    c = modul / 6;                                              // head play
+    r_wormgear = modul*transfer_coefficient/(2*sin(gradient_angle));       // partial cylinder radius worm
+    r_rad = modul*tooth_number/2;                                   // Part cone radius Spur gear
+    rf_wormgear = r_wormgear - modul - c;                       // Foot cylinder radius
+    gamma = -90*width*sin(gradient_angle)/(pi*r_rad);         // Rotation angle of the spur gear
+    tooth_distance = modul*pi/cos(gradient_angle);                // tooth spacing in transverse section
+    x = isstraight(transfer_coefficient)? 0.5 : 1;
+    
+    if (assembled) {
         if(show_worm)
-        translate([r_schnecke,(ceil(length/(2*zahnabstand))-x)*zahnabstand,0])
-            rotate([90,180/gangzahl,0])
-                worm(modul, gangzahl, length, bohrung_schnecke, pressure_angle, steigungswinkel, zusammen_gebaut);
-
+            translate([r_wormgear,(ceil(length/(2*tooth_distance))-x)*tooth_distance,0])
+            rotate([90,180/transfer_coefficient,0])
+            worm(modul, transfer_coefficient, length, borehole_wormgear, pressure_angle, gradient_angle, assembled);
+        
         if(show_spur)
-        translate([-r_rad,0,-width/2])
+            translate([-r_rad,0,-width/2])
             rotate([0,0,gamma])
-                spur_gear (modul, tooth_number, width, bohrung_rad, pressure_angle, -steigungswinkel, optimized);
+            spur_gear (modul, tooth_number, width, borehole_rad, pressure_angle, -gradient_angle, optimized);
     }
-    else {  
+    else {
         if(show_worm)
-        worm(modul, gangzahl, length, bohrung_schnecke, pressure_angle, steigungswinkel, zusammen_gebaut);
-
+            worm(modul, transfer_coefficient, length, borehole_wormgear, pressure_angle, gradient_angle, assembled);
+        
         if(show_spur)
-        translate([-2*r_rad,0,0])
-            spur_gear (modul, tooth_number, width, bohrung_rad, pressure_angle, -steigungswinkel, optimized);
+            translate([-2*r_rad,0,0])
+            spur_gear (modul, tooth_number, width, borehole_rad, pressure_angle, -gradient_angle, optimized);
     }
 }
 
-// rack(modul=1, length=30, hoehe=5, width=5, pressure_angle=20, schraegungswinkel=20);
+// rack (module = 1, length = 30, height = 5, width = 5, pressure_angle = 20, angle of twist = 20);
 
-//spur_gear (modul=1, tooth_number=30, width=5, bohrung=4, pressure_angle=20, schraegungswinkel=20, optimized=true);
+// spur_gear (modul = 1, tooth_number = 30, width = 5, hole = 4, pressure_angle = 20, angle = 20, optimized = true);
 
-//arrow_gear (modul=1, tooth_number=30, width=5, bohrung=4, pressure_angle=20, schraegungswinkel=30, optimized=true);
+// arrow_gear (modul = 1, tooth_number = 30, width = 5, hole = 4, pressure_angle = 20, angle = 30, optimized = true);
 
-//zahnstange_und_rad (modul=1, laenge_stange=50, zahnzahl_rad=30, hoehe_stange=4, bohrung_rad=4, width=5, pressure_angle=20, schraegungswinkel=0, zusammen_gebaut=true, optimized=true);
+// rack_and_rad (module = 1, length_bar = 50, number_of_rad = 30, height_bar = 4, bore_rad = 4, width = 5, pressure_angle = 20, angle = 0, together_built = true, optimized = true);
 
-//ring_gear (modul=1, tooth_number=30, width=5, randbreite=3, pressure_angle=20, schraegungswinkel=20);
+// ring_gear (modul = 1, tooth_number = 30, width = 5, border = 3, pressure_angle = 20, angle = 20);
 
-// arrow_ring_gear (modul=1, tooth_number=30, width=5, randbreite=3, pressure_angle=20, schraegungswinkel=30);
+// arrow_ring_gear (modul = 1, tooth_number = 30, width = 5, border = 3, pressure_angle = 20, angle = 30);
 
-//planetary_gear(modul=1, zahnzahl_sonne=16, zahnzahl_planet=9, anzahl_planeten=5, width=5, randbreite=3, bohrung=4, pressure_angle=20, schraegungswinkel=30, zusammen_gebaut=true, optimized=true);
+// planetary_gear (modul = 1, tooth_number_sun = 16, tooth_plan_planet = 9, number_planets = 5, width = 5, border = 3, hole = 4, pressure_angle = 20, angle = 30, together_built = true, optimized = true);
 
-//bevel_gear(modul=1, tooth_number=30,  teilkegelwinkel=45, zahnbreite=5, bohrung=4, pressure_angle=20, schraegungswinkel=20);
+// bevel_gear (modul = 1, tooth_number = 30, angle = 45, tooth width = 5, hole = 4, pressure_angle = 20, angle = 20);
 
-// bevel_arrow_gear(modul=1, tooth_number=30, teilkegelwinkel=45, zahnbreite=5, bohrung=4, pressure_angle=20, schraegungswinkel=30);
+// bevel_arrow_gear (modul = 1, tooth_number = 30, angle = 45, tooth width = 5, bore = 4, pressure_angle = 20, angle = 30);
 
-// bevel_gear_pair(modul=1, zahnzahl_rad=30, zahnzahl_ritzel=11, achsenwinkel=100, zahnbreite=5, bohrung=4, pressure_angle = 20, schraegungswinkel=20, zusammen_gebaut=true);
+// bevel_gear_pair (modul = 1, number of teeth = 30, number of teeth = 11, axis angle = 100, tooth width = 5, bore = 4, pressure_angle = 20, angle = 20, together_built = true);
 
-// bevel_arrow_gear_pair(modul=1, zahnzahl_rad=30, zahnzahl_ritzel=11, achsenwinkel=100, zahnbreite=5, bohrung=4, pressure_angle = 20, schraegungswinkel=30, zusammen_gebaut=true);
+// bevel_arrow_gear_pair (modul = 1, number of teeth = 30, number of teeth = 11, axis = 100, tooth = 5, bore = 4, pressure_angle = 20, angle = 30, together_built = true);
 
-// worm(modul=1, gangzahl=2, length=15, bohrung=4, pressure_angle=20, steigungswinkel=10, zusammen_gebaut=true);
+// worm (module = 1, number of steps = 2, length = 15, hole = 4, pressure_angle = 20, angle = 10, together_built = true);
 
-worm_gear(modul=1, tooth_number=30, gangzahl=2, width=8, length=20, bohrung_schnecke=4, bohrung_rad=4, pressure_angle=20, steigungswinkel=10, optimized=1, zusammen_gebaut=1, show_spur=1, show_worm=1);
+// worm_gear (modul = 1, tooth_number = 30, aisle = 2, width = 8, length = 20, bore_screw = 4, bore_rad = 4, pressure_angle = 20, pitch = 10, optimized = 1, collect_built = 1, show_spur = 1, show_worm = 1);
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// rack(modul=1, length=30, height=5, width=5, pressure_angle=20, helix_angle=20);
+
+//spur_gear (modul=1, tooth_number=30, width=5, drilling=4, pressure_angle=20, helix_angle=20, optimized=true);
+
+//arrow_gear (modul=1, tooth_number=30, width=5, drilling=4, pressure_angle=20, helix_angle=30, optimized=true);
+
+//rack_and_pinion (modul=1, rod_length=50, num_of_teeth=30, height_rod=4, borehole_rad=4, width=5, pressure_angle=20, helix_angle=0, assembled=true, optimized=true);
+
+//ring_gear (modul=1, tooth_number=30, width=5, edge_width=3, pressure_angle=20, helix_angle=20);
+
+// arrow_ring_gear (modul=1, tooth_number=30, width=5, edge_width=3, pressure_angle=20, helix_angle=30);
+
+planetary_gear(modul=1, num_teeth_sun=13, num_teeth_planet=11, number_planet=3, width=10, edge_width=5, drilling=3, pressure_angle=20, helix_angle=30, assembled=false, optimized=true);
+
+//bevel_gear(modul=1, tooth_number=30,  partial_cone_angle=45, tooth_wide=5, drilling=4, pressure_angle=20, helix_angle=20);
+
+// bevel_arrow_gear(modul=1, tooth_number=30, partial_cone_angle=45, tooth_wide=5, drilling=4, pressure_angle=20, helix_angle=30);
+
+// bevel_gear_pair(modul=1, num_of_teeth=30, num_teeth_pinion=11, axis_angle=100, tooth_wide=5, drilling=4, pressure_angle = 20, helix_angle=20, assembled=true);
+
+// bevel_arrow_gear_pair(modul=1, num_of_teeth=30, num_teeth_pinion=11, axis_angle=100, tooth_wide=5, drilling=4, pressure_angle = 20, helix_angle=30, assembled=true);
+
+// worm(modul=1, transfer_coefficient=2, length=15, drilling=4, pressure_angle=20, gradient_angle=10, assembled=true);
+
+//worm_gear(modul=1, tooth_number=30, transfer_coefficient=2, width=8, length=20, borehole_wormgear=4, borehole_rad=4, pressure_angle=20, gradient_angle=10, optimized=1, assembled=1, show_spur=1, show_worm=1);
