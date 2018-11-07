@@ -1,3 +1,5 @@
+AletheianAlex NOTE: this is a fork of https://github.com/chrisspen/gears where I made a humble attempt to translate the comments and functions to English. Below is Chrisspen's README:
+
 OpenSCAD gear generator
 =======================
 
