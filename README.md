@@ -16,16 +16,18 @@ Creates a gear rack.
 
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 20° helix angle, a pressure angle of 20° becomes a pressure angle of 21.17° in the transverse section.
 
-Format:
-zahnstange(modul, laenge, hoehe, breite, eingriffswinkel=20, schraegungswinkel=0)
+<h5>Format:</h5>
+zahnstange(modul, laenge, hoehe, breite, eingriffswinkel=20, schraegungswinkel=0)  <br>
+Translated:  <br>
+rack (module, length, height, width, pressure_angle = 20, helix_angle = 0)
 
-Parameters:
-modul = height of the tooth above the pitch line
-laenge = length of the rack
-hoehe = height from bottom to the pitch line
-breite = face width
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867. Should not be greater than 45°.
-schraegungswinkel = bevel angle perpendicular to the rack's length; 0° = straight teeth
+<h5>Parameters:</h5>  
+modul = height of the tooth above the pitch line  <br>
+laenge = length of the rack  <br>
+hoehe = height from bottom to the pitch line  <br>
+breite = face width  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867. Should not be greater than 45°.  <br>
+schraegungswinkel = bevel angle perpendicular to the rack's length; 0° = straight teeth  
 
 
 <h4>Parametric Involute Spur Gear</h4>
@@ -38,16 +40,18 @@ Helical gears run more smoothly than gears with straight teeth. However, they al
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 20° helix angle, a pressure angle of 20° becomes a pressure angle of 21.17° in the transverse section.
 
 <h5>Format:</h5>
-stirnrad (modul, zahnzahl, breite, bohrung, eingriffswinkel=20, schraegungswinkel=0, optimiert=true)
+stirnrad (modul, zahnzahl, breite, bohrung, eingriffswinkel=20, schraegungswinkel=0, optimiert=true)  <br>
+Translated:  <br>
+spur_gear (module, tooth_number, width, bore, pressure_angle = 20, helix_angle = 0, optimized = true)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl = number of teeth
-breite = face width
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth
-optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows
+modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl = number of teeth  <br>
+breite = face width  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth  <br>
+optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows  
 
 
 <h4>Parametric Herringbone Involute Spur Gear</h4>
@@ -62,16 +66,18 @@ A helix angle, if used, should be set between between 30° and 45°. Recommendat
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 30° helix angle, a pressure angle of 20° becomes a pressure angle of 22.80 in the transverse section.
 
 <h5>Format:</h5>
-pfeilrad (modul, zahnzahl, breite, bohrung, eingriffswinkel=20, schraegungswinkel=0, optimiert=true)
+pfeilrad (modul, zahnzahl, breite, bohrung, eingriffswinkel=20, schraegungswinkel=0, optimiert=true)  <br>
+Translation:  <br>
+herringbone_gear (module, tooth_number, width, bore, pressure_angle = 20, helix_angle = 0, optimized = true)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl = number of teeth
-breite = face width
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth
-optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows
+modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl = number of teeth  <br>
+breite = face width  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth  <br>
+optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows  
 
 
 <h4>Parametric Gear Rack and Pinion</h4>
@@ -86,18 +92,20 @@ With a given module m and z<sub>p</sub> teeth on the pinion, the distance betwee
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 20° helix angle, a pressure angle of 20° becomes a pressure angle of 21.17° in the transverse section.
 
 <h5>Format:</h5>
-zahnstange(modul, laenge, hoehe, breite, eingriffswinkel=20, schraegungswinkel=0)
+zahnstange(modul, laenge, hoehe, breite, eingriffswinkel=20, schraegungswinkel=0)  <br>
+Translation:  <br>
+rack_and_pinion (module, rack_length, pinion_teeth, rack_height, pinion_bore, width, pressure_angle = 20, helix_angle = 0, together_built = true, optimized = true)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the tooth above the pitch line/pitch circle = 25.4 / diametrical pitch = circular pitch / π
-laenge_stange = length of the rack
-zahnzahl_ritzel = number of teeth on the pinion
-hoehe_stange = height from bottom to the pitch line
-bohrung_ritzel = central bore diameter of the pinion
-breite = face width
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = bevel angle perpendicular to the rack's length resp. helix angle to the rotation axis on the pinion; 0° = straight teeth
-zusammen_gebaut = assembled (true) or disassembled for printing (false)
+modul = gear module = height of the tooth above the pitch line/pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+laenge_stange = length of the rack  <br>
+zahnzahl_ritzel = number of teeth on the pinion  <br>
+hoehe_stange = height from bottom to the pitch line  <br>
+bohrung_ritzel = central bore diameter of the pinion  <br>
+breite = face width  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = bevel angle perpendicular to the rack's length resp. helix angle to the rotation axis on the pinion; 0° = straight teeth  <br>
+zusammen_gebaut = assembled (true) or disassembled for printing (false)  
 
 
 +++
@@ -109,15 +117,17 @@ Creates a herringbone ring gear without profile displacement. Helical gears run 
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 20° helix angle, a pressure angle of 20° becomes a pressure angle of 21.17° in the transverse section.
 
 <h5>Format:</h5>
-hohlrad(modul, zahnzahl, breite, randbreite, eingriffswinkel=20, schraegungswinkel=0)
+hohlrad(modul, zahnzahl, breite, randbreite, eingriffswinkel=20, schraegungswinkel=0)  <br>
+Translation:  <br>
+ring_gear (module, tooth_number, width, border_width, pressure_angle = 20, helix_angle = 0)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl = number of teeth
-breite = face width
-randbreite = width of the rim around the ring gear, measured from the root circle
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
+modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl = number of teeth  <br>
+breite = face width  <br>
+randbreite = width of the rim around the ring gear, measured from the root circle  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
 schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth
 
 
@@ -128,15 +138,17 @@ Creates a herringbone ring gear without profile displacement. A ring and spur ge
 A helix angle, if used, should be set between between 30° and 45°. Recommendations for the helix angle depending on the module can be found in DIN 3978. This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 30° helix angle, a pressure angle of 20° becomes a pressure angle of 22.80° in the transverse section.
 
 <h5>Format:</h5>
-pfeilhohlrad(modul, zahnzahl, breite, randbreite, eingriffswinkel=20, schraegungswinkel=0)
+pfeilhohlrad(modul, zahnzahl, breite, randbreite, eingriffswinkel=20, schraegungswinkel=0)  <br>
+Translation:  <br>
+herringbone_ring_gear (modul, tooth_number, width, borderwidth, pressure_angle = 20, helix_angle = 0)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl = number of teeth
-breite = face width
-randbreite = width of the rim around the ring gear, measured from the root circle
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
+modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl = number of teeth  <br>
+breite = face width  <br>
+randbreite = width of the rim around the ring gear, measured from the root circle  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
 schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth
 
 +++
@@ -159,20 +171,22 @@ To avoid the gears sticking in a 3D print, particularly sticking of the planet g
 The gears can also be kept from sticking by a sufficiently large clearance ("Spiel"); a sufficient clearance also avoids meshing problems. Clearance can be left smaller if the 3D printer offers good resolution, however experience shows that it should not be less than 5%.
 
 <h5>Format:</h5>
-planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, breite, randbreite, bohrung, eingriffswinkel=20, schraegungswinkel=0, zusammen_gebaut=true, optimiert=true)
+planetengetriebe(modul, zahnzahl_sonne, zahnzahl_planet, breite, randbreite, bohrung, eingriffswinkel=20, schraegungswinkel=0, zusammen_gebaut=true, optimiert=true)  <br>
+Translation:  <br>
+planetary_gear (module, sun_teeth, planet_teeth, number_planets, width, ring_width, bore, pressure_angle = 20, helix_angle = 0, together_built = true, optimized = true)
 
 <h5>Parameters:</h5>
-spiel = clearance between teeth as a fraction of their width (0 = no clearance)
-modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl_sonne = number of teeth on the sun gear
-zahnzahl_planet = number of teeth per planet gear
-anzahl_planeten = number of planet gears; if set to zero, the script will attempt to calculate the least number of planet gears
-breite = face width
-randbreite = width of the rim around the ring gear, measured from the root circle
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth
-zusammen_gebaut = components assembled for construction (true) or disassembled (false) for 3D printing
+spiel = clearance between teeth as a fraction of their width (0 = no clearance)  <br>
+modul = gear module = height of the tooth above the pitch circle = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl_sonne = number of teeth on the sun gear  <br>
+zahnzahl_planet = number of teeth per planet gear  <br>
+anzahl_planeten = number of planet gears; if set to zero, the script will attempt to calculate the least number of planet gears  <br>
+breite = face width  <br>
+randbreite = width of the rim around the ring gear, measured from the root circle  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = helix angle to the rotation axis; 0° = straight teeth  <br>
+zusammen_gebaut = components assembled for construction (true) or disassembled (false) for 3D printing  <br>
 optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows
 
 +++
@@ -184,15 +198,17 @@ This script creates a herringbone bevel gear with spherical involute teeth geome
 This script adjusts the pressure angle in the transverse section to the helix angle: e.g. with a 30° helix angle, a pressure angle of 20° becomes a pressure angle of 22.80° in the transverse section.
 
 <h5>Format:</h5>
-pfeilkegelrad(modul, zahnzahl, teilkegelwinkel, zahnbreite, bohrung, eingriffswinkel=20, schraegungswinkel=0)
+pfeilkegelrad(modul, zahnzahl, teilkegelwinkel, zahnbreite, bohrung, eingriffswinkel=20, schraegungswinkel=0)  <br>
+Translation:<br>
+bevel_herringbone_gear (module, tooth_number, ref_cone_angle_half, tooth_width, bore, pressure_angle = 20, helix_angle = 0)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl = number of teeth
-teilkegelwinkel = reference cone (half-)angle
-zahnbreite = width of teeth from the rim in direction of the reference cone tip
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
+modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl = number of teeth  <br>
+teilkegelwinkel = reference cone (half-)angle  <br>
+zahnbreite = width of teeth from the rim in direction of the reference cone tip  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
 schraegungswinkel = helix angle between the teeth and the reference cone envelope line, 0° = straight teeth
 
 +++
@@ -202,18 +218,20 @@ schraegungswinkel = helix angle between the teeth and the reference cone envelop
 This script calculates both the gear and the pinion of a bevel gear pair, using the gears' module and their numbers of teeth. The preset angle of 90° between the axes of both gears can be varied. It is possible to calculate the pair both assembled for design as well as disassembled for printing.
 
 <h5>Format:</h5>
-kegelradpaar(modul, zahnzahl_rad, zahnzahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, eingriffswinkel = 20, schraegungswinkel=0, zusammen_gebaut=true)
+kegelradpaar(modul, zahnzahl_rad, zahnzahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, eingriffswinkel = 20, schraegungswinkel=0, zusammen_gebaut=true)  <br>
+Translation:  <br>
+bevel_gear_pair (module, gear_teeth, pinion_teeth, axis_angle = 90, tooth_width, bore, pressure_angle = 20, helix_angle = 0, together_built = true)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl_rad = number of teeth on the gear
-zahnzahl_ritzel = number of teeth on the pinion
-achsenwinkel = angle between the axes of pinion and gear, standard value = 90°
-zahnbreite = width of the teeth from the rim in direction of the cone tip
-bohrung_rad = central bore diameter of the gear
-bohrung_ritzel = central bore diameter of the pinion
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = helix angle between the teeth and the reference cone envelope line, 0° = straight teeth
+modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl_rad = number of teeth on the gear  <br>
+zahnzahl_ritzel = number of teeth on the pinion <br> 
+achsenwinkel = angle between the axes of pinion and gear, standard value = 90°  <br>
+zahnbreite = width of the teeth from the rim in direction of the cone tip  <br>
+bohrung_rad = central bore diameter of the gear  <br>
+bohrung_ritzel = central bore diameter of the pinion  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = helix angle between the teeth and the reference cone envelope line, 0° = straight teeth  <br>
 zusammen_gebaut = assembled (true) oder disassembled for printing (false)
 
 
@@ -224,18 +242,20 @@ zusammen_gebaut = assembled (true) oder disassembled for printing (false)
 This script calculates both the gear and the pinion of a herringbone bevel gear pair, using the gears' module and their numbers of teeth. The preset angle of 90° between the axes of both gears can be varied. It is possible to calculate the pair both assembled for design as well as disassembled for printing.
 
 <h5>Format:</h5>
-pfeilkegelradpaar(modul, zahnzahl_rad, zahnzsahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, eingriffswinkel = 20, schraegungswinkel=0, zusammen_gebaut=true)
+pfeilkegelradpaar(modul, zahnzahl_rad, zahnzsahl_ritzel, achsenwinkel=90, zahnbreite, bohrung, eingriffswinkel = 20, schraegungswinkel=0, zusammen_gebaut=true)  <br>
+Translation:  <br>
+bevel_herringbone_gear_pair (module, gear_teeth, pinion_teeth, axis_angle = 90, tooth_width, bore, pressure_angle = 20, helix_angle = 0, together_built = true)
 
 <h5>Parameters:</h5>
-modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π
-zahnzahl_rad = number of teeth on the gear
-zahnzahl_ritzel = number of teeth on the pinion
-achsenwinkel = angle between the axes of pinion and gear, standard value = 90°
-zahnbreite = width of the teeth from the rim in direction of the cone tip
-bohrung_rad = central bore diameter of the gear
-bohrung_ritzel = central bore diameter of the pinion
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-schraegungswinkel = helix angle between the teeth and the reference cone envelope line, 0° = straight teeth
+modul = gear module = height of the gear teeth above the pitch cone = 25.4 / diametrical pitch = circular pitch / π  <br>
+zahnzahl_rad = number of teeth on the gear  <br>
+zahnzahl_ritzel = number of teeth on the pinion  <br>
+achsenwinkel = angle between the axes of pinion and gear, standard value = 90°  <br>
+zahnbreite = width of the teeth from the rim in direction of the cone tip  <br>
+bohrung_rad = central bore diameter of the gear  <br>
+bohrung_ritzel = central bore diameter of the pinion  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+schraegungswinkel = helix angle between the teeth and the reference cone envelope line, 0° = straight teeth  <br>
 zusammen_gebaut = assembled (true) or disassembled for printing (false)
 
 +++
@@ -249,15 +269,17 @@ The worm's pitch circle r can be calculated out of its module m, number of threa
 r = m·z·<sup>1</sup>/<sub>2sinγ</sub> 
 
 <h5>Format:</h5>
-schnecke(modul, gangzahl, laenge, bohrung, eingriffswinkel=20, steigungswinkel=10, zusammen_gebaut=true)
+schnecke(modul, gangzahl, laenge, bohrung, eingriffswinkel=20, steigungswinkel=10, zusammen_gebaut=true)  <br>
+Translation:  <br>
+worm (module, thread_starts, length, bore, pressure_angle = 20, helix_angle = 10, together_built = true)
 
 <h5>Parameters:</h5>
-modul = height of the thread above the pitch circle
-gangzahl = number of threads
-laenge = length of the worm
-bohrung = central bore diameter
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867
-steigungswinkel = lead angle of worm. Positive lead angle = clockwise thread rotation
+modul = height of the thread above the pitch circle  <br>
+gangzahl = number of threads  <br>
+laenge = length of the worm  <br>
+bohrung = central bore diameter  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867  <br>
+steigungswinkel = lead angle of worm. Positive lead angle = clockwise thread rotation  <br>
 zusammen_gebaut = assembled (true) or disassembled for printing (false)
 
 
@@ -268,18 +290,20 @@ zusammen_gebaut = assembled (true) or disassembled for printing (false)
 Creates a set of one worm gear and a pinion. The pinion is a normal spur gear without globoid geometry.
 
 <h5>Format:</h5>
-module schneckenradsatz(modul, zahnzahl, gangzahl, breite, laenge, bohrung_schnecke, bohrung_rad, eingriffswinkel=20, steigungswinkel, optimiert=true, zusammen_gebaut=true)
+module schneckenradsatz(modul, zahnzahl, gangzahl, breite, laenge, bohrung_schnecke, bohrung_rad, eingriffswinkel=20, steigungswinkel, optimiert=true, zusammen_gebaut=true)  <br>
+Translation:  <br>
+worm_gear (module, tooth_number, thread_starts, width, length, bore_screw, bore_rad, pressure_angle = 20, helix_angle = 0, optimized = true, together_built = true)
 
 <h5>Parameter:</h5>
 
-modul = gear module = and height of the gear teeth above th pitch circle / of the thread above the pitch circle
-zahnzahl = number of teeth on the pinion
-gangzahl = number of threads
-breite = face width on the pinion
-laenge = length of the worm
-bohrung_schnecke = central bore diameter of the worm
-bohrung_rad = central bore diameter of the pinion
-eingriffswinkel = pressure angle, standard value = 20° according to DIN 867. Shouldn't be greater than 45°
-steigungswinkel = lead angle of worm. Positive lead angle = clockwise thread rotation
-optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows
+modul = gear module = and height of the gear teeth above th pitch circle / of the thread above the pitch circle  <br>
+zahnzahl = number of teeth on the pinion  <br>
+gangzahl = number of threads  <br>
+breite = face width on the pinion  <br>
+laenge = length of the worm  <br>
+bohrung_schnecke = central bore diameter of the worm  <br>
+bohrung_rad = central bore diameter of the pinion  <br>
+eingriffswinkel = pressure angle, standard value = 20° according to DIN 867. Shouldn't be greater than 45°  <br>
+steigungswinkel = lead angle of worm. Positive lead angle = clockwise thread rotation  <br>
+optimiert = if true, create holes for material/weight reduction resp. surface increase, if geometry allows  <br>
 zusammen_gebaut =  assembled (true) or disassembled for printing (false)
